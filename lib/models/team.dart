@@ -109,6 +109,11 @@ class Team {
     isWaiting = false;
   }
 
+  // Reset consecutive wins (used when returning from waiting mode)
+  void resetConsecutiveWins() {
+    consecutiveWins = 0;
+  }
+
   // Calculate win rate as a percentage
   double get winRate {
     final total = totalGames;

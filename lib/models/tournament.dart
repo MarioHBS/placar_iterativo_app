@@ -102,6 +102,19 @@ class Tournament {
     final teamA = teamsMap[match.teamAId]!;
     final teamB = teamsMap[match.teamBId]!;
 
+    // Check if this match involved a waiting team returning to play
+    bool waitingTeamReturned = false;
+    if (waitingTeamId != null &&
+        (match.teamAId == waitingTeamId || match.teamBId == waitingTeamId)) {
+      waitingTeamReturned = true;
+      // Clear waiting status
+      final waitingTeam = teamsMap[waitingTeamId]!;
+      waitingTeam.isWaiting = false;
+      waitingTeam
+          .resetConsecutiveWins(); // Reset consecutive wins when returning
+      waitingTeamId = null;
+    }
+
     // Update team stats
     if (match.winnerId != null && match.loserId != null) {
       final winner = teamsMap[match.winnerId]!;
@@ -111,11 +124,21 @@ class Tournament {
       loser.addLoss();
 
       // Update queue - "King of the Hill" logic
-      // Only remove the loser from the queue
+      // Remove the loser from the queue (if they're in it)
       queueIds.remove(loser.id);
 
-      // Check if winner should enter waiting mode
-      if (winner.consecutiveWins >= config.winsForWaitingMode) {
+      // If the winner was the waiting team, they need to be added back to the queue
+      if (waitingTeamReturned && winner.id == match.winnerId) {
+        // Winner was the waiting team, add them to the front of the queue
+        queueIds.insert(0, winner.id);
+      } else if (!queueIds.contains(winner.id)) {
+        // If winner is not in queue (shouldn't happen in normal flow), add to front
+        queueIds.insert(0, winner.id);
+      }
+
+      // Check if winner should enter waiting mode (only if they weren't just returning)
+      if (!waitingTeamReturned &&
+          winner.consecutiveWins >= config.winsForWaitingMode) {
         // Winner enters waiting mode, remove from queue
         queueIds.remove(winner.id);
         waitingTeamId = winner.id;
@@ -132,6 +155,11 @@ class Tournament {
       queueIds.remove(teamB.id);
       queueIds.add(teamA.id);
       queueIds.add(teamB.id);
+
+      // If there was a waiting team involved in the draw, clear waiting status
+      if (waitingTeamReturned) {
+        // Both teams get added back to queue, no one stays waiting
+      }
     }
 
     // Clear current match
