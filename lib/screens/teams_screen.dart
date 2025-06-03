@@ -45,6 +45,27 @@ class _TeamsScreenState extends State<TeamsScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'reset_stats') {
+                _showResetStatsDialog();
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'reset_stats',
+                child: Row(
+                  children: [
+                    Icon(Icons.refresh, size: 20),
+                    SizedBox(width: 8),
+                    Text('Resetar Estatísticas'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
       body: _buildBody(),
       floatingActionButton: FloatingActionButton(
@@ -536,6 +557,44 @@ class _TeamsScreenState extends State<TeamsScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Selecionar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showResetStatsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Resetar Estatísticas'),
+        content: const Text(
+          'Tem certeza que deseja resetar todas as estatísticas dos times? '
+          'Esta ação irá zerar vitórias, derrotas e vitórias consecutivas de todos os times.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await teamsNotifier.resetAllTeamStats();
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Estatísticas resetadas com sucesso!'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Resetar'),
           ),
         ],
       ),
