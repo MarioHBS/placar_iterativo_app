@@ -26,9 +26,12 @@ class Tournament {
   String? waitingTeamId; // ID of team in waiting mode
 
   @HiveField(6)
-  List<String> matchIds; // IDs of matches played
+  String? challengerId; // Team that should challenge the waiting team
 
   @HiveField(7)
+  List<String> matchIds; // IDs of matches played
+
+  @HiveField(8)
   String? currentMatchId; // ID of current match
 
   @HiveField(8)
@@ -47,6 +50,7 @@ class Tournament {
     required this.teamIds,
     required this.queueIds,
     this.waitingTeamId,
+    this.challengerId,
     List<String>? matchIds,
     this.currentMatchId,
     required this.createdAt,
@@ -77,14 +81,13 @@ class Tournament {
 
   // Get the next match teams
   List<String>? getNextMatchTeamIds() {
-    if (queueIds.length < 2) return null;
-
-    // If there's a waiting team, it plays against the first team in queue
-    if (waitingTeamId != null) {
-      return [waitingTeamId!, queueIds[0]];
+    // Check if we need a challenger vs waiting team match
+    if (waitingTeamId != null && challengerId != null) {
+      return [waitingTeamId!, challengerId!];
     }
 
-    // Otherwise, first two teams in queue play against each other
+    // Regular queue matches
+    if (queueIds.length < 2) return null;
     return [queueIds[0], queueIds[1]];
   }
 
@@ -113,6 +116,7 @@ class Tournament {
       waitingTeam
           .resetConsecutiveWins(); // Reset consecutive wins when returning
       waitingTeamId = null;
+      challengerId = null; // Clear challenger as the match is complete
     }
 
     // Update team stats
@@ -143,9 +147,18 @@ class Tournament {
         queueIds.remove(winner.id);
         waitingTeamId = winner.id;
         winner.isWaiting = true;
+        challengerId = null; // Clear any pending challenger
+      } else if (waitingTeamId != null && !waitingTeamReturned) {
+        // There's a waiting team and current winner should challenge them
+        // Remove winner from queue and set as challenger
+        queueIds.remove(winner.id);
+        challengerId = winner.id;
+      } else {
+        // Clear challenger if no waiting team or winner was returning
+        challengerId = null;
       }
-      // If winner doesn't enter waiting mode, they stay at the front of the queue
-      // to face the next challenger
+      // If winner doesn't enter waiting mode and there's no waiting team,
+      // they stay at the front of the queue to face the next challenger
 
       // Loser always goes to the back of the queue
       queueIds.add(loser.id);
@@ -160,6 +173,9 @@ class Tournament {
       if (waitingTeamReturned) {
         // Both teams get added back to queue, no one stays waiting
       }
+
+      // Clear challenger in case of draw
+      challengerId = null;
     }
 
     // Clear current match
