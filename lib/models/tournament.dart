@@ -63,11 +63,16 @@ class Tournament {
     required String name,
     required GameConfig config,
     required List<Team> teams,
+    bool shuffleTeams = true,
   }) {
-    // Create a shuffled queue of team IDs
+    // Create queue of team IDs
     final teamIds = teams.map((team) => team.id).toList();
     final queueIds = List<String>.from(teamIds);
-    queueIds.shuffle(); // Randomize initial queue order
+
+    if (shuffleTeams) {
+      queueIds.shuffle(); // Randomize initial queue order
+    }
+    // If shuffleTeams is false, maintain the original selection order
 
     return Tournament(
       id: DateTime.now().millisecondsSinceEpoch.toString(),

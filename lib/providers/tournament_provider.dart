@@ -55,11 +55,13 @@ class TournamentNotifier extends ChangeNotifier {
     required String name,
     required GameConfig config,
     required List<Team> teams,
+    bool shuffleTeams = true,
   }) async {
     final tournament = Tournament.create(
       name: name,
       config: config,
       teams: teams,
+      shuffleTeams: shuffleTeams,
     );
 
     await _tournamentsBox.put(tournament.id, tournament);

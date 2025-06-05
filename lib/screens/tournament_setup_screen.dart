@@ -31,6 +31,7 @@ class _TournamentSetupScreenState extends State<TournamentSetupScreen> {
   final _tournamentNameController = TextEditingController(text: 'Torneio');
   final List<Team> _selectedTeams = [];
   final List<Team> _availableTeams = [];
+  bool _shuffleTeams = true;
 
   @override
   void initState() {
@@ -80,6 +81,8 @@ class _TournamentSetupScreenState extends State<TournamentSetupScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildTournamentNameField(),
+          const SizedBox(height: 24),
+          _buildShuffleConfigSection(),
           const SizedBox(height: 24),
           _buildTeamsSection(),
           const SizedBox(height: 32),
@@ -138,6 +141,70 @@ class _TournamentSetupScreenState extends State<TournamentSetupScreen> {
                 hintText: 'Ex: Torneio de Verão',
                 border: OutlineInputBorder(),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShuffleConfigSection() {
+    return Card(
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Ordem dos Times',
+              style: GoogleFonts.roboto(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Icon(
+                  _shuffleTeams ? Icons.shuffle : Icons.format_list_numbered,
+                  color: Theme.of(context).primaryColor,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _shuffleTeams
+                            ? 'Embaralhar Times'
+                            : 'Manter Ordem de Seleção',
+                        style: GoogleFonts.roboto(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        _shuffleTeams
+                            ? 'A ordem dos times será aleatória'
+                            : 'Os times jogarão na ordem que foram selecionados',
+                        style: GoogleFonts.roboto(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Switch(
+                  value: _shuffleTeams,
+                  onChanged: (value) {
+                    setState(() {
+                      _shuffleTeams = value;
+                    });
+                  },
+                ),
+              ],
             ),
           ],
         ),
@@ -376,6 +443,7 @@ class _TournamentSetupScreenState extends State<TournamentSetupScreen> {
       name: tournamentName,
       config: widget.gameConfig,
       teams: _selectedTeams,
+      shuffleTeams: _shuffleTeams,
     );
 
     if (!mounted) return;
