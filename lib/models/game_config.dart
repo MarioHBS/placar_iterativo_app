@@ -46,6 +46,10 @@ class GameConfig {
   int?
       totalMatches; // total number of matches in tournament, null for unlimited
 
+  @HiveField(7)
+  bool
+      waitingModeEnabled; // whether waiting mode is enabled for this tournament
+
   GameConfig({
     required this.id,
     required this.gameMode,
@@ -54,6 +58,7 @@ class GameConfig {
     this.scoreLimit,
     this.winsForWaitingMode = 3,
     this.totalMatches,
+    this.waitingModeEnabled = true,
   });
 
   // Factory constructor for free mode
@@ -72,6 +77,7 @@ class GameConfig {
     int? scoreLimit,
     int winsForWaitingMode = 3,
     int? totalMatches,
+    bool waitingModeEnabled = true,
   }) {
     return GameConfig(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -81,6 +87,7 @@ class GameConfig {
       scoreLimit: scoreLimit,
       winsForWaitingMode: winsForWaitingMode,
       totalMatches: totalMatches,
+      waitingModeEnabled: waitingModeEnabled,
     );
   }
 

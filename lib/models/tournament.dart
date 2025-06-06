@@ -145,8 +145,9 @@ class Tournament {
         queueIds.insert(0, winner.id);
       }
 
-      // Check if winner should enter waiting mode (only if they weren't just returning)
+      // Check if winner should enter waiting mode (only if they weren't just returning and waiting mode is enabled)
       if (!waitingTeamReturned &&
+          config.waitingModeEnabled &&
           winner.consecutiveWins >= config.winsForWaitingMode) {
         // Winner enters waiting mode, remove from queue
         queueIds.remove(winner.id);

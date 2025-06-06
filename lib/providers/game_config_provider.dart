@@ -61,6 +61,7 @@ class GameConfigNotifier extends ChangeNotifier {
     int? scoreLimit,
     int winsForWaitingMode = 3,
     int? totalMatches,
+    bool waitingModeEnabled = true,
   }) async {
     final config = GameConfig.tournamentMode(
       endCondition: endCondition,
@@ -68,6 +69,7 @@ class GameConfigNotifier extends ChangeNotifier {
       scoreLimit: scoreLimit,
       winsForWaitingMode: winsForWaitingMode,
       totalMatches: totalMatches,
+      waitingModeEnabled: waitingModeEnabled,
     );
     await _configsBox.put(config.id, config);
     _configs[config.id] = config;

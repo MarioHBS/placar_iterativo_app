@@ -25,6 +25,7 @@ class _GameConfigScreenState extends State<GameConfigScreen> {
   final _scoreController = TextEditingController(text: '10');
   final _streakController = TextEditingController(text: '3');
   final _maxMatchesController = TextEditingController();
+  bool _waitingModeEnabled = true;
 
   Team? _teamA;
   Team? _teamB;
@@ -390,6 +391,29 @@ class _GameConfigScreenState extends State<GameConfigScreen> {
               ),
             ),
             const SizedBox(height: 16),
+            // Waiting Mode Toggle
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Modo Espera',
+                    style: GoogleFonts.roboto(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                Switch(
+                  value: _waitingModeEnabled,
+                  onChanged: (value) {
+                    setState(() {
+                      _waitingModeEnabled = value;
+                    });
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
@@ -397,6 +421,7 @@ class _GameConfigScreenState extends State<GameConfigScreen> {
                     label: 'Vitórias para Modo Espera',
                     controller: _streakController,
                     hint: '3',
+                    enabled: _waitingModeEnabled,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -524,6 +549,7 @@ class _GameConfigScreenState extends State<GameConfigScreen> {
     required TextEditingController controller,
     required String hint,
     bool isRequired = true,
+    bool enabled = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -538,6 +564,7 @@ class _GameConfigScreenState extends State<GameConfigScreen> {
         const SizedBox(height: 8),
         TextField(
           controller: controller,
+          enabled: enabled,
           decoration: InputDecoration(
             hintText: hint,
             border: OutlineInputBorder(
@@ -681,15 +708,19 @@ class _GameConfigScreenState extends State<GameConfigScreen> {
           break;
       }
 
-      winsForWaitingMode = int.tryParse(_streakController.text);
-      if (winsForWaitingMode == null || winsForWaitingMode <= 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-                'Sequência de vitórias deve ser um número válido maior que 0'),
-          ),
-        );
-        return;
+      if (_waitingModeEnabled) {
+        winsForWaitingMode = int.tryParse(_streakController.text);
+        if (winsForWaitingMode == null || winsForWaitingMode <= 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                  'Sequência de vitórias deve ser um número válido maior que 0'),
+            ),
+          );
+          return;
+        }
+      } else {
+        winsForWaitingMode = 3; // Default value when waiting mode is disabled
       }
 
       if (_maxMatchesController.text.isNotEmpty) {
@@ -735,6 +766,7 @@ class _GameConfigScreenState extends State<GameConfigScreen> {
         scoreLimit: scoreLimit,
         winsForWaitingMode: winsForWaitingMode ?? 3,
         totalMatches: totalMatches,
+        waitingModeEnabled: _waitingModeEnabled,
       )
           .then((config) {
         if (mounted) {
