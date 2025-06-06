@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:placar_iterativo_app/models/game_config.dart';
@@ -35,6 +36,8 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
   int _elapsedSeconds = 0;
   bool _isTimeUp = false;
   bool _isScoreReached = false;
+  bool _isOrientationLocked = false;
+  bool _showOrientationMenu = false;
 
   @override
   void initState() {
@@ -44,6 +47,7 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     currentGameNotifier.addListener(_onGameStateChanged);
     matchesNotifier.addListener(_onMatchesChanged);
     _startTimer();
+    _enableFullRotation();
   }
 
   @override
@@ -51,6 +55,7 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     _timer.cancel();
     currentGameNotifier.removeListener(_onGameStateChanged);
     matchesNotifier.removeListener(_onMatchesChanged);
+    _restoreDefaultOrientation();
     super.dispose();
   }
 
@@ -60,6 +65,80 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
 
   void _onMatchesChanged() {
     setState(() {});
+  }
+
+  void _enableFullRotation() {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+    
+    // Enable fullscreen mode
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.immersiveSticky,
+      overlays: [],
+    );
+  }
+
+  void _restoreDefaultOrientation() {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+    
+    // Restore system UI
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: SystemUiOverlay.values,
+    );
+  }
+
+  void _toggleOrientationLock() {
+    setState(() {
+      _isOrientationLocked = !_isOrientationLocked;
+
+      if (_isOrientationLocked) {
+        // Lock to current orientation
+        final currentOrientation = MediaQuery.of(context).orientation;
+
+        if (currentOrientation == Orientation.portrait) {
+          SystemChrome.setPreferredOrientations([
+            DeviceOrientation.portraitUp,
+            DeviceOrientation.portraitDown,
+          ]);
+        } else {
+          SystemChrome.setPreferredOrientations([
+            DeviceOrientation.landscapeLeft,
+            DeviceOrientation.landscapeRight,
+          ]);
+        }
+      } else {
+        // Unlock orientation
+        _enableFullRotation();
+      }
+    });
+  }
+
+  void _forceOrientation(Orientation orientation) {
+    setState(() {
+      _isOrientationLocked = true;
+
+      if (orientation == Orientation.portrait) {
+        SystemChrome.setPreferredOrientations([
+          DeviceOrientation.portraitUp,
+          DeviceOrientation.portraitDown,
+        ]);
+      } else {
+        SystemChrome.setPreferredOrientations([
+          DeviceOrientation.landscapeLeft,
+          DeviceOrientation.landscapeRight,
+        ]);
+      }
+    });
   }
 
   void _startTimer() {
@@ -138,10 +217,139 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      body: SafeArea(
-        child: isLandscape
-            ? _buildLandscapeLayout(match, screenWidth, screenHeight)
-            : _buildPortraitLayout(match, screenWidth, screenHeight),
+      body: Stack(
+        children: [
+          // Main content
+          isLandscape
+              ? _buildLandscapeLayout(match, screenWidth, screenHeight)
+              : _buildPortraitLayout(match, screenWidth, screenHeight),
+
+          // Orientation controls
+          _buildOrientationControls(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrientationControls() {
+    return Positioned(
+      top: 16,
+      left: 16,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Main orientation button
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.black54,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: IconButton(
+              onPressed: () {
+                setState(() {
+                  _showOrientationMenu = !_showOrientationMenu;
+                });
+              },
+              icon: Icon(
+                Icons.screen_rotation,
+                color: Colors.white,
+                size: 20,
+              ),
+              tooltip: 'Opções de Orientação',
+            ),
+          ),
+          // Dropdown menu
+          if (_showOrientationMenu)
+            Container(
+              margin: const EdgeInsets.only(top: 8),
+              decoration: BoxDecoration(
+                color: Colors.black87,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Portrait option
+                  _buildOrientationOption(
+                    icon: Icons.stay_current_portrait,
+                    label: 'Retrato',
+                    isActive: MediaQuery.of(context).orientation == Orientation.portrait,
+                    onTap: () {
+                      _forceOrientation(Orientation.portrait);
+                      setState(() {
+                        _showOrientationMenu = false;
+                      });
+                    },
+                  ),
+                  // Landscape option
+                  _buildOrientationOption(
+                    icon: Icons.stay_current_landscape,
+                    label: 'Paisagem',
+                    isActive: MediaQuery.of(context).orientation == Orientation.landscape,
+                    onTap: () {
+                      _forceOrientation(Orientation.landscape);
+                      setState(() {
+                        _showOrientationMenu = false;
+                      });
+                    },
+                  ),
+                  // Lock/unlock option
+                  _buildOrientationOption(
+                    icon: _isOrientationLocked ? Icons.screen_lock_rotation : Icons.screen_rotation,
+                    label: _isOrientationLocked ? 'Desbloquear' : 'Bloquear',
+                    isActive: _isOrientationLocked,
+                    onTap: () {
+                      _toggleOrientationLock();
+                      setState(() {
+                        _showOrientationMenu = false;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrientationOption({
+    required IconData icon,
+    required String label,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: isActive ? Colors.blue : Colors.white,
+              size: 18,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: isActive ? Colors.blue : Colors.white,
+                fontSize: 14,
+                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -195,6 +403,11 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     required double width,
     required double height,
   }) {
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final fontSize = isLandscape ? 100.0 : 120.0;
+    final teamNameSize = isLandscape ? 28.0 : 32.0;
+    final emojiSize = isLandscape ? 40.0 : 48.0;
+
     return GestureDetector(
       onTap: () => _incrementScore(isTeamA),
       onLongPress: () => _decrementScore(isTeamA),
@@ -213,31 +426,31 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
                   if (team.emoji != null)
                     Text(
                       team.emoji!,
-                      style: const TextStyle(fontSize: 48),
+                      style: TextStyle(fontSize: emojiSize),
                     ),
                   if (team.imagePath != null)
                     Image.asset(
                       team.imagePath!,
-                      width: 80,
-                      height: 80,
+                      width: isLandscape ? 60 : 80,
+                      height: isLandscape ? 60 : 80,
                     ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: isLandscape ? 12 : 16),
                   // Team name
                   Text(
                     team.name,
                     style: GoogleFonts.roboto(
-                      fontSize: 32,
+                      fontSize: teamNameSize,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: isLandscape ? 16 : 24),
                   // Score
                   Text(
                     score.toString(),
                     style: GoogleFonts.bebasNeue(
-                      fontSize: 120,
+                      fontSize: fontSize,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -245,48 +458,52 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
                 ],
               ),
             ),
-            // Timer display
-            Positioned(
-              top: 16,
-              right: 16,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  _formatTime(_elapsedSeconds),
-                  style: GoogleFonts.roboto(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: _isTimeUp ? Colors.red : Colors.white,
-                  ),
-                ),
-              ),
-            ),
-            // End match button
-            Positioned(
-              bottom: 16,
-              right: 16,
-              child: ElevatedButton(
-                onPressed: _endMatch,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
+            // Timer display (only show on first team section to avoid duplication)
+            if (isTeamA)
+              Positioned(
+                top: isLandscape ? 70 : 16,
+                right: 16,
+                child: Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                ),
-                child: Text(
-                  'Finalizar',
-                  style: GoogleFonts.roboto(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    _formatTime(_elapsedSeconds),
+                    style: GoogleFonts.roboto(
+                      fontSize: isLandscape ? 18 : 20,
+                      fontWeight: FontWeight.bold,
+                      color: _isTimeUp ? Colors.red : Colors.white,
+                    ),
                   ),
                 ),
               ),
-            ),
+            // End match button (only show on second team section)
+            if (!isTeamA)
+              Positioned(
+                bottom: 16,
+                right: 16,
+                child: ElevatedButton(
+                  onPressed: _endMatch,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isLandscape ? 12 : 16,
+                      vertical: isLandscape ? 6 : 8,
+                    ),
+                  ),
+                  child: Text(
+                    'Finalizar',
+                    style: GoogleFonts.roboto(
+                      fontSize: isLandscape ? 14 : 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
