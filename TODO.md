@@ -49,7 +49,7 @@
   - [x] Widgets ResponsiveContainer e ResponsiveText para facilitar implementação
   - [x] Implementado em Home Screen e Game Config Screen
   - [ ] Aplicar responsividade nas demais telas (Scoreboard, Teams, Tournament, etc.)
-- [ ] **Dark/Light Theme** - Implementar temas claro e escuro
+- [x] **Dark/Light Theme** - Implementar temas claro e escuro
 - [ ] **Animations** - Adicionar animações de transição
 - [ ] **Sound Effects** - Efeitos sonoros para eventos do jogo
 
