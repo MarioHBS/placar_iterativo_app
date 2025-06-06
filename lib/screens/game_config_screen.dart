@@ -8,7 +8,6 @@ import 'package:placar_iterativo_app/models/team.dart';
 import 'package:placar_iterativo_app/providers/game_config_provider.dart';
 import 'package:placar_iterativo_app/providers/matches_provider.dart';
 import 'package:placar_iterativo_app/providers/teams_provider.dart';
-import 'package:placar_iterativo_app/screens/scoreboard_screen.dart';
 import 'package:placar_iterativo_app/screens/tournament_setup_screen.dart';
 
 class GameConfigScreen extends StatefulWidget {
@@ -167,12 +166,14 @@ class _GameConfigScreenState extends State<GameConfigScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            _buildModeCard(
-              title: 'Torneio',
-              icon: Icons.emoji_events,
-              description: 'Gerenciamento de fila e regras de término',
-              isSelected: true,
-              onTap: () {},
+            Center(
+              child: _buildModeCard(
+                title: 'Torneio',
+                icon: Icons.emoji_events,
+                description: 'Gerenciamento de fila e regras de término',
+                isSelected: true,
+                onTap: () {},
+              ),
             ),
           ],
         ),
