@@ -27,36 +27,7 @@ class CurrentGameNotifier extends ChangeNotifier {
   String? get error => _error;
   int get elapsedSeconds => _elapsedSeconds;
 
-  // Start a free mode game
-  Future<void> startFreeGame({
-    required Team teamA,
-    required Team teamB,
-    required MatchesNotifier matchesNotifier,
-  }) async {
-    try {
-      _isLoading = true;
-      _error = null;
-      notifyListeners();
 
-      // Create a new match
-      final match = await matchesNotifier.createMatch(
-        teamA: teamA,
-        teamB: teamB,
-      );
-
-      // Start the timer
-      _startTimer();
-
-      // Update the state
-      _gameState = GameState.playing;
-      _isLoading = false;
-      notifyListeners();
-    } catch (e) {
-      _error = e.toString();
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
 
   // Start a tournament game
   Future<void> startTournamentGame({

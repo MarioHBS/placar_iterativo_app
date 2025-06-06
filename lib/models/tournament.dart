@@ -34,7 +34,7 @@ class Tournament {
   @HiveField(8)
   String? currentMatchId; // ID of current match
 
-  @HiveField(8)
+  @HiveField(11)
   DateTime createdAt;
 
   @HiveField(9)

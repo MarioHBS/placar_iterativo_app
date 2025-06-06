@@ -4,8 +4,6 @@ part 'game_config.g.dart';
 
 @HiveType(typeId: 2)
 enum GameMode {
-  @HiveField(0)
-  free,
   @HiveField(1)
   tournament
 }
@@ -61,14 +59,7 @@ class GameConfig {
     this.waitingModeEnabled = true,
   });
 
-  // Factory constructor for free mode
-  factory GameConfig.freeMode() {
-    return GameConfig(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      gameMode: GameMode.free,
-      winsForWaitingMode: 3,
-    );
-  }
+
 
   // Factory constructor for tournament mode
   factory GameConfig.tournamentMode({
@@ -93,7 +84,6 @@ class GameConfig {
 
   // Check if the game should end based on time
   bool shouldEndByTime(int elapsedSeconds) {
-    if (gameMode == GameMode.free) return false;
     if (endCondition == EndCondition.time ||
         endCondition == EndCondition.both) {
       return timeLimit != null && elapsedSeconds >= timeLimit!;
@@ -103,7 +93,6 @@ class GameConfig {
 
   // Check if the game should end based on score
   bool shouldEndByScore(int teamAScore, int teamBScore) {
-    if (gameMode == GameMode.free) return false;
     if (endCondition == EndCondition.score ||
         endCondition == EndCondition.both) {
       return scoreLimit != null &&
@@ -114,7 +103,6 @@ class GameConfig {
 
   // Check if the tournament is complete
   bool isTournamentComplete(int matchesPlayed) {
-    if (gameMode == GameMode.free) return false;
     return totalMatches != null && matchesPlayed >= totalMatches!;
   }
 }

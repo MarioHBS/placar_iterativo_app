@@ -19,7 +19,7 @@ class GameConfigScreen extends StatefulWidget {
 }
 
 class _GameConfigScreenState extends State<GameConfigScreen> {
-  GameMode _selectedMode = GameMode.free;
+  GameMode _selectedMode = GameMode.tournament;
   EndCondition _selectedEndCondition = EndCondition.none;
   final _timeController = TextEditingController(text: '5');
   final _scoreController = TextEditingController(text: '10');
@@ -167,30 +167,12 @@ class _GameConfigScreenState extends State<GameConfigScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildModeCard(
-                    title: 'Livre',
-                    icon: Icons.sports_score,
-                    description:
-                        'Pontuação livre, sem fila nem regras de término',
-                    isSelected: _selectedMode == GameMode.free,
-                    onTap: () => setState(() => _selectedMode = GameMode.free),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildModeCard(
-                    title: 'Torneio',
-                    icon: Icons.emoji_events,
-                    description: 'Gerenciamento de fila e regras de término',
-                    isSelected: _selectedMode == GameMode.tournament,
-                    onTap: () =>
-                        setState(() => _selectedMode = GameMode.tournament),
-                  ),
-                ),
-              ],
+            _buildModeCard(
+              title: 'Torneio',
+              icon: Icons.emoji_events,
+              description: 'Gerenciamento de fila e regras de término',
+              isSelected: true,
+              onTap: () {},
             ),
           ],
         ),
@@ -737,52 +719,30 @@ class _GameConfigScreenState extends State<GameConfigScreen> {
       }
     }
 
-    // Create game config
-    if (_selectedMode == GameMode.free) {
-      final config = await gameConfigNotifier.createFreeMode();
-      final match = await matchesNotifier.createMatch(
-        teamA: _teamA!,
-        teamB: _teamB!,
-      );
+    // Create tournament mode config
+    gameConfigNotifier
+        .createTournamentMode(
+      endCondition: _selectedEndCondition,
+      timeLimit: timeLimit,
+      scoreLimit: scoreLimit,
+      winsForWaitingMode: winsForWaitingMode ?? 3,
+      totalMatches: totalMatches,
+      waitingModeEnabled: _waitingModeEnabled,
+    )
+        .then((config) {
       if (mounted) {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ScoreboardScreen(
-              match: match,
-              teamA: _teamA!,
-              teamB: _teamB!,
+            builder: (context) => TournamentSetupScreen(
+              initialTeamA: _teamA!,
+              initialTeamB: _teamB!,
               gameConfig: config,
-              onMatchComplete: () => Navigator.pop(context),
             ),
           ),
         );
       }
-    } else {
-      gameConfigNotifier
-          .createTournamentMode(
-        endCondition: _selectedEndCondition,
-        timeLimit: timeLimit,
-        scoreLimit: scoreLimit,
-        winsForWaitingMode: winsForWaitingMode ?? 3,
-        totalMatches: totalMatches,
-        waitingModeEnabled: _waitingModeEnabled,
-      )
-          .then((config) {
-        if (mounted) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TournamentSetupScreen(
-                initialTeamA: _teamA!,
-                initialTeamB: _teamB!,
-                gameConfig: config,
-              ),
-            ),
-          );
-        }
-      });
-    }
+    });
   }
 
   void _showErrorSnackBar(String message) {

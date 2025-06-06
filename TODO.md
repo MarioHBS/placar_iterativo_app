@@ -35,7 +35,7 @@
 ## 🔄 Em Desenvolvimento/Refinamento
 
 ### Próximas Ações Prioritárias
-- [ ] **Eliminar Modo Livre** - Remover completamente o modo livre, manter apenas torneio
+- [x] **Eliminar Modo Livre** - Remover completamente o modo livre, manter apenas torneio
 - [ ] **Exibir Fotos no Placar** - Corrigir exibição das fotos dos times no placar
 - [ ] **Áudio de Pontuação** - Anunciar em áudio o ponto atual ao alterar pontuação
 - [ ] **Símbolo de Posse de Bola** - Definir qual time inicia com a bola usando símbolo de vôlei 🏐
@@ -132,7 +132,7 @@
 - [ ] **Team Images in Scoreboard** - Fotos dos times não aparecem no placar (PRIORIDADE ALTA)
 - [ ] **Timer Precision** - Melhorar precisão do cronômetro
 - [ ] **State Persistence** - Verificar persistência em mudanças de tela
-- [ ] **Free Mode Removal** - Remover completamente referências ao modo livre
+- [x] **Free Mode Removal** - Remover completamente referências ao modo livre
 
 ## 📝 Notas de Desenvolvimento
 
@@ -152,7 +152,7 @@ lib/
 ```
 
 ### Próximos Passos Prioritários
-1. **Eliminar modo livre** - Manter apenas modo torneio
+1. ~~**Eliminar modo livre** - Manter apenas modo torneio~~ ✅ **CONCLUÍDO**
 2. **Corrigir exibição de fotos no placar** - Garantir que imagens dos times apareçam
 3. **Implementar áudio de pontuação** - Anunciar pontos em voz
 4. **Sistema de posse de bola** - Símbolo de vôlei para indicar quem inicia

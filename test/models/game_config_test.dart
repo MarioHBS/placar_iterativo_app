@@ -6,7 +6,7 @@ void main() {
     test('should create a game config with required parameters', () {
       // Arrange
       const id = 'config-1';
-      const gameMode = GameMode.free;
+      const gameMode = GameMode.tournament;
 
       // Act
       final config = GameConfig(
@@ -59,7 +59,7 @@ void main() {
       // Arrange
       final config = GameConfig(
         id: 'config-1',
-        gameMode: GameMode.free,
+        gameMode: GameMode.tournament,
       );
 
       // Act
@@ -73,7 +73,7 @@ void main() {
       // Arrange
       final config = GameConfig(
         id: 'config-1',
-        gameMode: GameMode.free,
+        gameMode: GameMode.tournament,
       );
 
       // Act
@@ -87,7 +87,7 @@ void main() {
       // Arrange
       final config = GameConfig(
         id: 'config-1',
-        gameMode: GameMode.free,
+        gameMode: GameMode.tournament,
       );
       const newTimeLimit = 3600; // 1 hour
 
@@ -102,7 +102,7 @@ void main() {
       // Arrange
       final config = GameConfig(
         id: 'config-1',
-        gameMode: GameMode.free,
+        gameMode: GameMode.tournament,
       );
       const newScoreLimit = 15;
 
@@ -117,7 +117,7 @@ void main() {
       // Arrange
       final config = GameConfig(
         id: 'config-1',
-        gameMode: GameMode.free,
+        gameMode: GameMode.tournament,
       );
       const newWinsForWaitingMode = 7;
 
@@ -147,7 +147,7 @@ void main() {
       // Arrange & Act
       final config = GameConfig(
         id: 'config-1',
-        gameMode: GameMode.free,
+        gameMode: GameMode.tournament,
         endCondition: null,
         timeLimit: null,
         scoreLimit: null,
@@ -164,8 +164,7 @@ void main() {
 
   group('GameMode Enum Tests', () {
     test('should have correct values', () {
-      expect(GameMode.values.length, equals(2));
-      expect(GameMode.values, contains(GameMode.free));
+      expect(GameMode.values.length, equals(1));
       expect(GameMode.values, contains(GameMode.tournament));
     });
   });

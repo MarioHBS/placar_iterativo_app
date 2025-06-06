@@ -45,14 +45,7 @@ class GameConfigNotifier extends ChangeNotifier {
     return configs;
   }
 
-  // Create a free mode config
-  Future<GameConfig> createFreeMode() async {
-    final config = GameConfig.freeMode();
-    await _configsBox.put(config.id, config);
-    _configs[config.id] = config;
-    notifyListeners();
-    return config;
-  }
+
 
   // Create a tournament mode config
   Future<GameConfig> createTournamentMode({
