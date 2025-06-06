@@ -28,11 +28,19 @@
 ### Game Features
 - [x] **Timer System** - Sistema de cronômetro para partidas
 - [x] **Score Tracking** - Acompanhamento de pontuação
-- [x] **Multiple Game Modes** - Modo livre e torneio
+- [x] **Tournament Mode** - Modo torneio (modo livre removido)
 - [x] **End Conditions** - Por tempo, pontuação ou ambos
 - [x] **Team Image Support** - Suporte a imagens das equipes
 
 ## 🔄 Em Desenvolvimento/Refinamento
+
+### Próximas Ações Prioritárias
+- [ ] **Eliminar Modo Livre** - Remover completamente o modo livre, manter apenas torneio
+- [ ] **Exibir Fotos no Placar** - Corrigir exibição das fotos dos times no placar
+- [ ] **Áudio de Pontuação** - Anunciar em áudio o ponto atual ao alterar pontuação
+- [ ] **Símbolo de Posse de Bola** - Definir qual time inicia com a bola usando símbolo de vôlei 🏐
+- [ ] **Time Vencedor Inicia** - Time vencedor da partida anterior sempre começa com a bola
+- [ ] **Finalizar Jogo com Celebração** - Botão para anunciar vencedor do dia com áudio de comemoração e troféu 🏆
 
 ### UI/UX Improvements
 - [ ] **Responsive Design** - Melhorar responsividade para diferentes telas
@@ -121,9 +129,10 @@
 
 ## 🐛 Bugs Conhecidos
 
-- [ ] **Image Loading** - Verificar carregamento de imagens das equipes
+- [ ] **Team Images in Scoreboard** - Fotos dos times não aparecem no placar (PRIORIDADE ALTA)
 - [ ] **Timer Precision** - Melhorar precisão do cronômetro
 - [ ] **State Persistence** - Verificar persistência em mudanças de tela
+- [ ] **Free Mode Removal** - Remover completamente referências ao modo livre
 
 ## 📝 Notas de Desenvolvimento
 
@@ -143,11 +152,12 @@ lib/
 ```
 
 ### Próximos Passos Prioritários
-1. Implementar sistema de chaves eliminatórias
-2. Melhorar UI/UX com temas e animações
-3. Adicionar estatísticas básicas
-4. Implementar exportação de dados
-5. Otimizar para diferentes tamanhos de tela
+1. **Eliminar modo livre** - Manter apenas modo torneio
+2. **Corrigir exibição de fotos no placar** - Garantir que imagens dos times apareçam
+3. **Implementar áudio de pontuação** - Anunciar pontos em voz
+4. **Sistema de posse de bola** - Símbolo de vôlei para indicar quem inicia
+5. **Celebração do vencedor** - Tela especial com áudio de comemoração
+6. **Sistema de chaves eliminatórias** - Para torneios mais complexos
 
 ---
 
