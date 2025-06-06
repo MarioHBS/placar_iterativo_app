@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -180,10 +181,19 @@ class _MatchSummaryScreenState extends State<MatchSummaryScreen> {
               style: const TextStyle(fontSize: 48),
             ),
           if (team.imagePath != null)
-            Image.asset(
-              team.imagePath!,
-              width: 60,
-              height: 60,
+            ClipOval(
+              child: Image.file(
+                File(team.imagePath!),
+                width: 60,
+                height: 60,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Text(
+                    team.emoji ?? '🏆',
+                    style: const TextStyle(fontSize: 48),
+                  );
+                },
+              ),
             ),
           const SizedBox(height: 8),
           // Team name

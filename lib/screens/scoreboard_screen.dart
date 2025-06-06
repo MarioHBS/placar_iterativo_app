@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -429,10 +430,19 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
                       style: TextStyle(fontSize: emojiSize),
                     ),
                   if (team.imagePath != null)
-                    Image.asset(
-                      team.imagePath!,
-                      width: isLandscape ? 60 : 80,
-                      height: isLandscape ? 60 : 80,
+                    ClipOval(
+                      child: Image.file(
+                        File(team.imagePath!),
+                        width: isLandscape ? 60 : 80,
+                        height: isLandscape ? 60 : 80,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Text(
+                            team.emoji ?? '🏆',
+                            style: TextStyle(fontSize: emojiSize),
+                          );
+                        },
+                      ),
                     ),
                   SizedBox(height: isLandscape ? 12 : 16),
                   // Team name

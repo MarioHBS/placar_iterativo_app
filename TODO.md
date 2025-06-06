@@ -36,7 +36,11 @@
 
 ### Próximas Ações Prioritárias
 - [x] **Eliminar Modo Livre** - Remover completamente o modo livre, manter apenas torneio
-- [ ] **Exibir Fotos no Placar** - Corrigir exibição das fotos dos times no placar
+- [x] **Exibir Fotos no Placar** - Corrigir exibição das fotos dos times no placar
+  - [x] Corrigido carregamento de imagens na Scoreboard Screen
+  - [x] Corrigido carregamento de imagens na Match Summary Screen
+  - [x] Substituído Image.asset por Image.file para arquivos do sistema
+  - [x] Adicionado tratamento de erro com fallback para emoji
 - [ ] **Áudio de Pontuação** - Anunciar em áudio o ponto atual ao alterar pontuação
 - [ ] **Símbolo de Posse de Bola** - Definir qual time inicia com a bola usando símbolo de vôlei 🏐
 - [ ] **Time Vencedor Inicia** - Time vencedor da partida anterior sempre começa com a bola
