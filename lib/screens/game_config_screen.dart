@@ -9,6 +9,7 @@ import 'package:placar_iterativo_app/providers/game_config_provider.dart';
 import 'package:placar_iterativo_app/providers/matches_provider.dart';
 import 'package:placar_iterativo_app/providers/teams_provider.dart';
 import 'package:placar_iterativo_app/screens/tournament_setup_screen.dart';
+import 'package:placar_iterativo_app/utils/responsive_utils.dart';
 
 class GameConfigScreen extends StatefulWidget {
   const GameConfigScreen({super.key});
@@ -18,7 +19,7 @@ class GameConfigScreen extends StatefulWidget {
 }
 
 class _GameConfigScreenState extends State<GameConfigScreen> {
-  GameMode _selectedMode = GameMode.tournament;
+  final GameMode _selectedMode = GameMode.tournament;
   EndCondition _selectedEndCondition = EndCondition.none;
   final _timeController = TextEditingController(text: '5');
   final _scoreController = TextEditingController(text: '10');
@@ -129,24 +130,105 @@ class _GameConfigScreenState extends State<GameConfigScreen> {
   }
 
   Widget _buildGameConfigForm(List<Team> teamsList) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildModeSelection(),
-          const SizedBox(height: 32),
-          _buildTeamSelection(teamsList),
-          const SizedBox(height: 32),
-          if (_selectedMode == GameMode.tournament) ...[
-            _buildTournamentSettings(),
-            const SizedBox(height: 32),
-          ],
-          _buildEndConditionSettings(),
-          const SizedBox(height: 40),
-          _buildStartButton(),
-        ],
+    return ResponsiveContainer(
+      child: SingleChildScrollView(
+        child: ResponsiveUtils.responsive(
+          context: context,
+          mobile: _buildMobileLayout(teamsList),
+          tablet: _buildTabletLayout(teamsList),
+          desktop: _buildDesktopLayout(teamsList),
+        ),
       ),
+    );
+  }
+
+  Widget _buildMobileLayout(List<Team> teamsList) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildModeSelection(),
+        SizedBox(height: ResponsiveUtils.getSpacing(context)),
+        _buildTeamSelection(teamsList),
+        SizedBox(height: ResponsiveUtils.getSpacing(context)),
+        if (_selectedMode == GameMode.tournament) ...[
+          _buildTournamentSettings(),
+          SizedBox(height: ResponsiveUtils.getSpacing(context)),
+        ],
+        _buildEndConditionSettings(),
+        SizedBox(height: ResponsiveUtils.getSpacing(context) * 1.5),
+        _buildStartButton(),
+      ],
+    );
+  }
+
+  Widget _buildTabletLayout(List<Team> teamsList) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildModeSelection(),
+        SizedBox(height: ResponsiveUtils.getSpacing(context)),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                children: [
+                  _buildTeamSelection(teamsList),
+                  if (_selectedMode == GameMode.tournament) ...[
+                    SizedBox(height: ResponsiveUtils.getSpacing(context)),
+                    _buildTournamentSettings(),
+                  ],
+                ],
+              ),
+            ),
+            SizedBox(width: ResponsiveUtils.getSpacing(context)),
+            Expanded(
+              child: _buildEndConditionSettings(),
+            ),
+          ],
+        ),
+        SizedBox(height: ResponsiveUtils.getSpacing(context) * 1.5),
+        _buildStartButton(),
+      ],
+    );
+  }
+
+  Widget _buildDesktopLayout(List<Team> teamsList) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildModeSelection(),
+        SizedBox(height: ResponsiveUtils.getSpacing(context)),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 2,
+              child: Column(
+                children: [
+                  _buildTeamSelection(teamsList),
+                  if (_selectedMode == GameMode.tournament) ...[
+                    SizedBox(height: ResponsiveUtils.getSpacing(context)),
+                    _buildTournamentSettings(),
+                  ],
+                ],
+              ),
+            ),
+            SizedBox(width: ResponsiveUtils.getSpacing(context)),
+            Expanded(
+              flex: 2,
+              child: _buildEndConditionSettings(),
+            ),
+          ],
+        ),
+        SizedBox(height: ResponsiveUtils.getSpacing(context) * 1.5),
+        Center(
+          child: SizedBox(
+            width: 400,
+            child: _buildStartButton(),
+          ),
+        ),
+      ],
     );
   }
 

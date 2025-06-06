@@ -45,8 +45,8 @@ class GameConfig {
       totalMatches; // total number of matches in tournament, null for unlimited
 
   @HiveField(7)
-  bool
-      waitingModeEnabled; // whether waiting mode is enabled for this tournament
+  bool?
+      _waitingModeEnabled; // whether waiting mode is enabled for this tournament
 
   GameConfig({
     required this.id,
@@ -56,8 +56,11 @@ class GameConfig {
     this.scoreLimit,
     this.winsForWaitingMode = 3,
     this.totalMatches,
-    this.waitingModeEnabled = true,
-  });
+    bool waitingModeEnabled = true,
+  }) : _waitingModeEnabled = waitingModeEnabled;
+
+  // Getter for waitingModeEnabled with default value
+  bool get waitingModeEnabled => _waitingModeEnabled ?? true;
 
 
 

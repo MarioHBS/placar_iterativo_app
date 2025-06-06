@@ -26,22 +26,22 @@ class Tournament {
   String? waitingTeamId; // ID of team in waiting mode
 
   @HiveField(6)
-  String? challengerId; // Team that should challenge the waiting team
+  dynamic _challengerId; // Team that should challenge the waiting team
 
   @HiveField(7)
-  List<String> matchIds; // IDs of matches played
+  dynamic _matchIds; // IDs of matches played
 
   @HiveField(8)
-  String? currentMatchId; // ID of current match
+  dynamic _currentMatchId; // ID of current match
 
   @HiveField(11)
-  DateTime createdAt;
+  DateTime? _createdAt;
 
   @HiveField(9)
   DateTime? completedAt;
 
   @HiveField(10)
-  bool isComplete;
+  bool? _isComplete;
 
   Tournament({
     required this.id,
@@ -50,13 +50,63 @@ class Tournament {
     required this.teamIds,
     required this.queueIds,
     this.waitingTeamId,
-    this.challengerId,
+    String? challengerId,
     List<String>? matchIds,
-    this.currentMatchId,
-    required this.createdAt,
+    String? currentMatchId,
+    DateTime? createdAt,
     this.completedAt,
-    this.isComplete = false,
-  }) : matchIds = matchIds ?? <String>[];
+    bool isComplete = false,
+  }) : _matchIds = matchIds ?? <String>[],
+       _isComplete = isComplete,
+       _challengerId = challengerId,
+       _currentMatchId = currentMatchId,
+       _createdAt = createdAt;
+
+  // Getter for isComplete with default value
+  bool get isComplete => _isComplete ?? false;
+
+  // Setter for isComplete
+  set isComplete(bool value) => _isComplete = value;
+
+  String? get challengerId {
+    if (_challengerId == null) return null;
+    if (_challengerId is String) return _challengerId;
+    if (_challengerId is List && _challengerId.isNotEmpty) {
+      return _challengerId.first;
+    }
+    return null;
+  }
+
+  set challengerId(String? value) {
+    _challengerId = value;
+  }
+
+  String? get currentMatchId {
+    if (_currentMatchId == null) return null;
+    if (_currentMatchId is String) return _currentMatchId;
+    return null; // Ignore non-String values from old data
+  }
+
+  set currentMatchId(String? value) {
+    _currentMatchId = value;
+  }
+
+  DateTime get createdAt => _createdAt ?? DateTime.now();
+
+  set createdAt(DateTime value) {
+    _createdAt = value;
+  }
+
+  List<String> get matchIds {
+    if (_matchIds == null) return <String>[];
+    if (_matchIds is List) return (_matchIds as List).cast<String>();
+    if (_matchIds is String) return [_matchIds]; // Convert single string to list
+    return <String>[]; // Default empty list for unexpected types
+  }
+
+  set matchIds(List<String> value) {
+    _matchIds = value;
+  }
 
   // Factory constructor to create a new tournament
   factory Tournament.create({

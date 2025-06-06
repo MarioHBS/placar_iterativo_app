@@ -43,7 +43,12 @@
 - [ ] **Finalizar Jogo com Celebração** - Botão para anunciar vencedor do dia com áudio de comemoração e troféu 🏆
 
 ### UI/UX Improvements
-- [ ] **Responsive Design** - Melhorar responsividade para diferentes telas
+- [x] **Responsive Design** - Sistema de responsividade implementado com ResponsiveUtils
+  - [x] Breakpoints para mobile (< 600px), tablet (600-1200px) e desktop (> 1200px)
+  - [x] Utilitários para padding, spacing, font sizes e dimensões responsivas
+  - [x] Widgets ResponsiveContainer e ResponsiveText para facilitar implementação
+  - [x] Implementado em Home Screen e Game Config Screen
+  - [ ] Aplicar responsividade nas demais telas (Scoreboard, Teams, Tournament, etc.)
 - [ ] **Dark/Light Theme** - Implementar temas claro e escuro
 - [ ] **Animations** - Adicionar animações de transição
 - [ ] **Sound Effects** - Efeitos sonoros para eventos do jogo
