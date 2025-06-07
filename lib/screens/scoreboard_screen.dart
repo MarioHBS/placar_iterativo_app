@@ -9,6 +9,7 @@ import 'package:placar_iterativo_app/models/match.dart';
 import 'package:placar_iterativo_app/models/team.dart';
 import 'package:placar_iterativo_app/providers/current_game_provider.dart';
 import 'package:placar_iterativo_app/providers/matches_provider.dart';
+import 'package:placar_iterativo_app/services/tts_service.dart';
 
 class ScoreboardScreen extends StatefulWidget {
   final Match match;
@@ -34,6 +35,7 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
   late CurrentGameNotifier currentGameNotifier;
   late MatchesNotifier matchesNotifier;
   late Timer _timer;
+  final TtsService _ttsService = TtsService();
   int _elapsedSeconds = 0;
   bool _isTimeUp = false;
   bool _isScoreReached = false;
@@ -47,13 +49,23 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     matchesNotifier = Modular.get<MatchesNotifier>();
     currentGameNotifier.addListener(_onGameStateChanged);
     matchesNotifier.addListener(_onMatchesChanged);
+    _initializeTts();
     _startTimer();
     _enableFullRotation();
+  }
+
+  Future<void> _initializeTts() async {
+    await _ttsService.initialize();
+    // Anunciar início da partida após um pequeno delay
+    Future.delayed(const Duration(seconds: 1), () {
+      _ttsService.announceMatchStart();
+    });
   }
 
   @override
   void dispose() {
     _timer.cancel();
+    _ttsService.dispose();
     currentGameNotifier.removeListener(_onGameStateChanged);
     matchesNotifier.removeListener(_onMatchesChanged);
     _restoreDefaultOrientation();
@@ -75,7 +87,7 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
-    
+
     // Enable fullscreen mode
     SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.immersiveSticky,
@@ -90,7 +102,7 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
-    
+
     // Restore system UI
     SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.manual,
@@ -167,6 +179,14 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     final updatedMatch = matchesNotifier.matches[widget.match.id];
     if (updatedMatch == null) return;
 
+    // Anunciar o placar atual
+    _ttsService.announceScore(
+      teamAName: widget.teamA.name,
+      teamAScore: updatedMatch.teamAScore,
+      teamBName: widget.teamB.name,
+      teamBScore: updatedMatch.teamBScore,
+    );
+
     // Check if score limit is reached
     if (widget.gameConfig
         .shouldEndByScore(updatedMatch.teamAScore, updatedMatch.teamBScore)) {
@@ -187,6 +207,19 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
 
   void _endMatch() {
     _timer.cancel();
+
+    // Determinar o vencedor e anunciar
+    final updatedMatch = matchesNotifier.matches[widget.match.id];
+    if (updatedMatch != null) {
+      final winner = updatedMatch.teamAScore > updatedMatch.teamBScore
+          ? widget.teamA
+          : widget.teamB;
+
+      // Anunciar o vencedor após um pequeno delay
+      Future.delayed(const Duration(seconds: 2), () {
+        _ttsService.announceWinner(winner.name);
+      });
+    }
 
     matchesNotifier.completeMatch(widget.match.id).then((_) {
       if (widget.onMatchComplete != null) {
@@ -281,7 +314,8 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
                   _buildOrientationOption(
                     icon: Icons.stay_current_portrait,
                     label: 'Retrato',
-                    isActive: MediaQuery.of(context).orientation == Orientation.portrait,
+                    isActive: MediaQuery.of(context).orientation ==
+                        Orientation.portrait,
                     onTap: () {
                       _forceOrientation(Orientation.portrait);
                       setState(() {
@@ -293,7 +327,8 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
                   _buildOrientationOption(
                     icon: Icons.stay_current_landscape,
                     label: 'Paisagem',
-                    isActive: MediaQuery.of(context).orientation == Orientation.landscape,
+                    isActive: MediaQuery.of(context).orientation ==
+                        Orientation.landscape,
                     onTap: () {
                       _forceOrientation(Orientation.landscape);
                       setState(() {
@@ -303,7 +338,9 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
                   ),
                   // Lock/unlock option
                   _buildOrientationOption(
-                    icon: _isOrientationLocked ? Icons.screen_lock_rotation : Icons.screen_rotation,
+                    icon: _isOrientationLocked
+                        ? Icons.screen_lock_rotation
+                        : Icons.screen_rotation,
                     label: _isOrientationLocked ? 'Desbloquear' : 'Bloquear',
                     isActive: _isOrientationLocked,
                     onTap: () {
@@ -404,7 +441,8 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     required double width,
     required double height,
   }) {
-    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     final fontSize = isLandscape ? 100.0 : 120.0;
     final teamNameSize = isLandscape ? 28.0 : 32.0;
     final emojiSize = isLandscape ? 40.0 : 48.0;

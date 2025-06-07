@@ -28,6 +28,9 @@ dependencies:
   # Media
   image_picker: ^1.0.7
   file_picker: ^10.1.9
+  
+  # Audio
+  flutter_tts: ^4.0.2
 
 dev_dependencies:
   flutter_test:
