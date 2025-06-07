@@ -56,7 +56,7 @@ class Team {
   }) {
     return Team(
       id: id,
-      name: name ?? 'Time $id',
+      name: name ?? 'Equipe $id',
       color: color ?? Colors.blue,
     );
   }

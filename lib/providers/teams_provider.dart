@@ -56,7 +56,7 @@ class TeamsNotifier extends ChangeNotifier {
     final id = DateTime.now().millisecondsSinceEpoch.toString();
     final team = Team(
       id: id,
-      name: name ?? 'Time $id',
+      name: name ?? 'Equipe $id',
       members: members ?? [],
       emoji: emoji,
       imagePath: imagePath,

@@ -179,17 +179,22 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     final updatedMatch = matchesNotifier.matches[widget.match.id];
     if (updatedMatch == null) return;
 
-    // Anunciar o placar atual
-    _ttsService.announceScore(
-      teamAName: widget.teamA.name,
-      teamAScore: updatedMatch.teamAScore,
-      teamBName: widget.teamB.name,
-      teamBScore: updatedMatch.teamBScore,
-    );
-
     // Check if score limit is reached
-    if (widget.gameConfig
-        .shouldEndByScore(updatedMatch.teamAScore, updatedMatch.teamBScore)) {
+    final isScoreLimitReached = widget.gameConfig
+        .shouldEndByScore(updatedMatch.teamAScore, updatedMatch.teamBScore);
+
+    // Only announce score if limit is not reached to avoid interruption
+    if (!isScoreLimitReached) {
+      _ttsService.announceScore(
+        teamAName: widget.teamA.name,
+        teamAScore: updatedMatch.teamAScore,
+        teamBName: widget.teamB.name,
+        teamBScore: updatedMatch.teamBScore,
+      );
+    }
+
+    // End match if score limit is reached
+    if (isScoreLimitReached) {
       setState(() {
         _isScoreReached = true;
       });

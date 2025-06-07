@@ -45,8 +45,6 @@ class GameConfigNotifier extends ChangeNotifier {
     return configs;
   }
 
-
-
   // Create a tournament mode config
   Future<GameConfig> createTournamentMode({
     required EndCondition endCondition,

@@ -62,8 +62,6 @@ class GameConfig {
   // Getter for waitingModeEnabled with default value
   bool get waitingModeEnabled => _waitingModeEnabled ?? true;
 
-
-
   // Factory constructor for tournament mode
   factory GameConfig.tournamentMode({
     EndCondition endCondition = EndCondition.score,
