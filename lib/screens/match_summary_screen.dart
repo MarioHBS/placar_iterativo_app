@@ -6,6 +6,7 @@ import 'package:placar_iterativo_app/models/match.dart';
 import 'package:placar_iterativo_app/models/team.dart';
 import 'package:placar_iterativo_app/models/tournament.dart';
 import 'package:placar_iterativo_app/providers/teams_provider.dart';
+import 'package:placar_iterativo_app/services/audio_service.dart';
 
 class MatchSummaryScreen extends StatefulWidget {
   final Match match;
@@ -25,12 +26,18 @@ class MatchSummaryScreen extends StatefulWidget {
 
 class _MatchSummaryScreenState extends State<MatchSummaryScreen> {
   late TeamsNotifier teamsNotifier;
+  final AudioService _audioService = AudioService();
 
   @override
   void initState() {
     super.initState();
     teamsNotifier = Modular.get<TeamsNotifier>();
     teamsNotifier.addListener(_onTeamsChanged);
+    
+    // Toca som de comemoração se há um vencedor
+    if (widget.match.winnerId != null) {
+      _audioService.playCelebrationSound();
+    }
   }
 
   void _onTeamsChanged() {

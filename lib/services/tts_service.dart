@@ -58,8 +58,8 @@ class TtsService {
         print('Aviso: Português não disponível, usando inglês como fallback');
       }
 
-      // Configurar velocidade da fala (mais lenta para melhor compreensão)
-      await _flutterTts!.setSpeechRate(0.5);
+      // Configurar velocidade da fala (velocidade moderada)
+      await _flutterTts!.setSpeechRate(0.75);
 
       // Configurar volume
       await _flutterTts!.setVolume(1.0);
