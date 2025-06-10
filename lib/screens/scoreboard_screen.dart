@@ -252,7 +252,7 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     // Calcula a luminância das cores dos times
     final teamALuminance = widget.teamA.color.computeLuminance();
     final teamBLuminance = widget.teamB.color.computeLuminance();
-    
+
     // Se ambos os times têm cores claras (luminância > 0.5), usa uma cor escura
     if (teamALuminance > 0.5 && teamBLuminance > 0.5) {
       return Colors.black87;
@@ -297,10 +297,14 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
   Widget _buildTournamentMenu() {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+
     return Positioned(
-      left: screenWidth / 2 - 24, // Centraliza horizontalmente (24 é metade da largura do botão)
-      top: screenHeight / 2 - 24,  // Centraliza verticalmente (24 é metade da altura do botão)
+      // Paisagem: centro horizontal, Retrato: lado esquerdo
+      left: isLandscape ? (screenWidth / 2) - 24 : 8,
+      // Paisagem: parte inferior, Retrato: centro vertical
+      top: isLandscape ? screenHeight - 48 : screenHeight / 2 - 24,
       child: Container(
         decoration: BoxDecoration(
           color: Colors.black54,
