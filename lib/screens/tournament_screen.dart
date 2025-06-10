@@ -137,6 +137,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
           teamB: _teamB!,
           gameConfig: _tournament.config,
           onMatchComplete: _onMatchComplete,
+          tournamentName: _tournament.name,
         ),
       ),
     );

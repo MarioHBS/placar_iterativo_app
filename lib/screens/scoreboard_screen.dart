@@ -17,6 +17,7 @@ class ScoreboardScreen extends StatefulWidget {
   final Team teamB;
   final GameConfig gameConfig;
   final VoidCallback? onMatchComplete;
+  final String? tournamentName;
 
   const ScoreboardScreen({
     super.key,
@@ -25,6 +26,7 @@ class ScoreboardScreen extends StatefulWidget {
     required this.teamB,
     required this.gameConfig,
     this.onMatchComplete,
+    this.tournamentName,
   });
 
   @override
@@ -284,8 +286,67 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
 
           // Orientation controls
           _buildOrientationControls(),
+
+          // Tournament menu (only show if tournament name is provided)
+          if (widget.tournamentName != null) _buildTournamentMenu(),
         ],
       ),
+    );
+  }
+
+  Widget _buildTournamentMenu() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    
+    return Positioned(
+      left: screenWidth / 2 - 24, // Centraliza horizontalmente (24 é metade da largura do botão)
+      top: screenHeight / 2 - 24,  // Centraliza verticalmente (24 é metade da altura do botão)
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.black54,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.white24, width: 1),
+        ),
+        child: IconButton(
+          icon: const Icon(
+            Icons.info_outline,
+            color: Colors.white,
+            size: 24,
+          ),
+          onPressed: _showTournamentDialog,
+          tooltip: 'Informações do Torneio',
+        ),
+      ),
+    );
+  }
+
+  void _showTournamentDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.emoji_events, color: Colors.amber),
+              SizedBox(width: 8),
+              Text('Torneio Atual'),
+            ],
+          ),
+          content: Text(
+            widget.tournamentName!,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Fechar'),
+            ),
+          ],
+        );
+      },
     );
   }
 
