@@ -18,6 +18,7 @@ class ScoreboardScreen extends StatefulWidget {
   final GameConfig gameConfig;
   final VoidCallback? onMatchComplete;
   final String? tournamentName;
+  final List<Team>? nextTeamsInQueue;
 
   const ScoreboardScreen({
     super.key,
@@ -27,6 +28,7 @@ class ScoreboardScreen extends StatefulWidget {
     required this.gameConfig,
     this.onMatchComplete,
     this.tournamentName,
+    this.nextTeamsInQueue,
   });
 
   @override
@@ -40,7 +42,6 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
   final TtsService _ttsService = TtsService();
   int _elapsedSeconds = 0;
   bool _isTimeUp = false;
-  bool _isScoreReached = false;
   bool _isOrientationLocked = false;
   bool _showOrientationMenu = false;
 
@@ -74,13 +75,9 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     super.dispose();
   }
 
-  void _onGameStateChanged() {
-    setState(() {});
-  }
+  void _onGameStateChanged() => setState(() {});
 
-  void _onMatchesChanged() {
-    setState(() {});
-  }
+  void _onMatchesChanged() => setState(() {});
 
   void _enableFullRotation() {
     SystemChrome.setPreferredOrientations([
@@ -197,9 +194,7 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
 
     // End match if score limit is reached
     if (isScoreLimitReached) {
-      setState(() {
-        _isScoreReached = true;
-      });
+      setState(() {});
       _endMatch();
     }
   }
@@ -329,19 +324,64 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.emoji_events, color: Colors.amber),
-              SizedBox(width: 8),
-              Text('Torneio Atual'),
+              const Icon(Icons.sports_soccer, color: Colors.green),
+              const SizedBox(width: 8),
+              Text(widget.tournamentName!),
             ],
           ),
-          content: Text(
-            widget.tournamentName!,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-            ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 4),
+              const Text(
+                'Próximos times na fila:',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 12),
+              if (widget.nextTeamsInQueue != null &&
+                  widget.nextTeamsInQueue!.isNotEmpty)
+                ...widget.nextTeamsInQueue!
+                    .take(2)
+                    .map((team) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 16,
+                                height: 16,
+                                decoration: BoxDecoration(
+                                  color: team.color,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                team.name,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ))
+                    .toList()
+              else
+                const Text(
+                  'Nenhum time na fila',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+            ],
           ),
           actions: [
             TextButton(

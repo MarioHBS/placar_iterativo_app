@@ -128,6 +128,17 @@ class _TournamentScreenState extends State<TournamentScreen> {
     });
 
     // Navigate to scoreboard
+    // Get next teams in queue (skip first 2 teams that are currently playing)
+    final nextTeamsInQueue = <Team>[];
+    final queueTeamIds = _tournament.queueIds;
+    final skippedQueue = queueTeamIds.skip(2).toList();
+    for (int i = 0; i < skippedQueue.length && i < 2; i++) {
+      final team = teamsNotifier.getTeam(skippedQueue[i]);
+      if (team != null) {
+        nextTeamsInQueue.add(team);
+      }
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -138,6 +149,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
           gameConfig: _tournament.config,
           onMatchComplete: _onMatchComplete,
           tournamentName: _tournament.name,
+          nextTeamsInQueue: nextTeamsInQueue,
         ),
       ),
     );
