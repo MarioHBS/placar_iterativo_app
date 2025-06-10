@@ -75,92 +75,105 @@ class _MatchSummaryScreenState extends State<MatchSummaryScreen> {
         ? (widget.match.winnerId == teamA.id ? teamA : teamB)
         : null;
 
-    final duration =
-        widget.match.endTime != null && widget.match.startTime != null
-            ? widget.match.endTime!.difference(widget.match.startTime!)
-            : Duration.zero;
+    final duration = widget.match.endTime != null
+        ? widget.match.endTime!.difference(widget.match.startTime)
+        : Duration.zero;
 
     final minutes = duration.inMinutes;
     final seconds = duration.inSeconds % 60;
 
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Header
-            Text(
-              'Resumo da Partida',
-              style: GoogleFonts.bebasNeue(
-                fontSize: 48,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-
-            // Teams and Score
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildTeamColumn(teamA, widget.match.teamAScore),
-                Text(
-                  'VS',
-                  style: GoogleFonts.roboto(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+            // Top content
+            Flexible(
+              flex: 8,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Header
+                  Text(
+                    'Resumo da Partida',
+                    style: GoogleFonts.bebasNeue(
+                      fontSize: 36,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                ),
-                _buildTeamColumn(teamB, widget.match.teamBScore),
-              ],
-            ),
-            const SizedBox(height: 32),
+                  const SizedBox(height: 16),
 
-            // Match details
-            Card(
-              elevation: 4,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildDetailRow('Duração',
-                        '$minutes:${seconds.toString().padLeft(2, '0')}'),
-                    const Divider(),
-                    if (winner != null) ...[
-                      _buildDetailRow('Vencedor', winner.name),
-                      const Divider(),
-                    ],
-                    if (widget.tournament != null) ...[
-                      _buildDetailRow('Torneio', widget.tournament!.name),
-                      const Divider(),
-                      _buildDetailRow(
-                        'Partidas Restantes',
-                        widget.tournament!.config.totalMatches != null
-                            ? '${widget.tournament!.config.totalMatches! - widget.tournament!.matchIds.length}'
-                            : 'Ilimitado',
+                  // Teams and Score
+                  Flexible(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildTeamColumn(teamA, widget.match.teamAScore),
+                        Text(
+                          'VS',
+                          style: GoogleFonts.roboto(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        _buildTeamColumn(teamB, widget.match.teamBScore),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Match details
+                  Card(
+                    elevation: 4,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildDetailRow('Duração',
+                              '$minutes:${seconds.toString().padLeft(2, '0')}'),
+                          const Divider(),
+                          if (winner != null) ...[
+                            _buildDetailRow('Vencedor', winner.name),
+                            const Divider(),
+                          ],
+                          if (widget.tournament != null) ...[
+                            _buildDetailRow('Torneio', widget.tournament!.name),
+                            const Divider(),
+                            _buildDetailRow(
+                              'Partidas Restantes',
+                              widget.tournament!.config.totalMatches != null
+                                  ? '${widget.tournament!.config.totalMatches! - widget.tournament!.matchIds.length}'
+                                  : 'Ilimitado',
+                            ),
+                          ],
+                        ],
                       ),
-                    ],
-                  ],
-                ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const Spacer(),
 
-            // Continue button
-            ElevatedButton(
-              onPressed: widget.onContinue,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: Text(
-                widget.tournament != null ? 'Próxima Partida' : 'Continuar',
-                style: GoogleFonts.roboto(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+            // Bottom button - always visible
+            Padding(
+              padding: const EdgeInsets.only(top: 16.0),
+              child: ElevatedButton(
+                onPressed: widget.onContinue,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: Text(
+                  widget.tournament != null ? 'Próxima Partida' : 'Continuar',
+                  style: GoogleFonts.roboto(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
@@ -173,44 +186,47 @@ class _MatchSummaryScreenState extends State<MatchSummaryScreen> {
   Widget _buildTeamColumn(Team team, int score) {
     return Expanded(
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Team emoji or image
           if (team.emoji != null)
             Text(
               team.emoji!,
-              style: const TextStyle(fontSize: 48),
+              style: const TextStyle(fontSize: 40),
             ),
           if (team.imagePath != null)
             ClipOval(
               child: Image.file(
                 File(team.imagePath!),
-                width: 60,
-                height: 60,
+                width: 50,
+                height: 50,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return Text(
                     team.emoji ?? '🏆',
-                    style: const TextStyle(fontSize: 48),
+                    style: const TextStyle(fontSize: 40),
                   );
                 },
               ),
             ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           // Team name
           Text(
             team.name,
             style: GoogleFonts.roboto(
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           // Score
           Text(
             score.toString(),
             style: GoogleFonts.bebasNeue(
-              fontSize: 64,
+              fontSize: 56,
               fontWeight: FontWeight.bold,
               color: team.color,
             ),
@@ -222,21 +238,26 @@ class _MatchSummaryScreenState extends State<MatchSummaryScreen> {
 
   Widget _buildDetailRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: GoogleFonts.roboto(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+          Flexible(
+            child: Text(
+              label,
+              style: GoogleFonts.roboto(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
-          Text(
-            value,
-            style: GoogleFonts.roboto(
-              fontSize: 16,
+          Flexible(
+            child: Text(
+              value,
+              style: GoogleFonts.roboto(
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.end,
             ),
           ),
         ],
