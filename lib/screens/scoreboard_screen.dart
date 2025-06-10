@@ -246,6 +246,25 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     return widget.match;
   }
 
+  Color _getDividerColor() {
+    // Calcula a luminância das cores dos times
+    final teamALuminance = widget.teamA.color.computeLuminance();
+    final teamBLuminance = widget.teamB.color.computeLuminance();
+    
+    // Se ambos os times têm cores claras (luminância > 0.5), usa uma cor escura
+    if (teamALuminance > 0.5 && teamBLuminance > 0.5) {
+      return Colors.black87;
+    }
+    // Se ambos os times têm cores escuras (luminância < 0.3), usa uma cor clara
+    else if (teamALuminance < 0.3 && teamBLuminance < 0.3) {
+      return Colors.white;
+    }
+    // Para casos mistos ou intermediários, usa branco como padrão
+    else {
+      return Colors.white;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final match = _getCurrentMatch();
@@ -407,6 +426,11 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
           width: width / 2,
           height: height,
         ),
+        Container(
+          width: 2,
+          height: height,
+          color: _getDividerColor(),
+        ),
         _buildTeamSection(
           team: widget.teamB,
           score: match.teamBScore,
@@ -421,19 +445,28 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
   Widget _buildPortraitLayout(Match match, double width, double height) {
     return Column(
       children: [
-        _buildTeamSection(
-          team: widget.teamA,
-          score: match.teamAScore,
-          isTeamA: true,
-          width: width,
-          height: height / 2,
+        Expanded(
+          child: _buildTeamSection(
+            team: widget.teamA,
+            score: match.teamAScore,
+            isTeamA: true,
+            width: width,
+            height: height / 2,
+          ),
         ),
-        _buildTeamSection(
-          team: widget.teamB,
-          score: match.teamBScore,
-          isTeamA: false,
+        Container(
           width: width,
-          height: height / 2,
+          height: 2,
+          color: _getDividerColor(),
+        ),
+        Expanded(
+          child: _buildTeamSection(
+            team: widget.teamB,
+            score: match.teamBScore,
+            isTeamA: false,
+            width: width,
+            height: height / 2,
+          ),
         ),
       ],
     );
