@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:placar_iterativo_app/services/audio_service.dart';
 
 class TtsService {
   static final TtsService _instance = TtsService._internal();
@@ -9,7 +10,8 @@ class TtsService {
 
   FlutterTts? _flutterTts;
   bool _isInitialized = false;
-  bool _isSupported = false;
+  bool _isSupported = true;
+  final AudioService _audioService = AudioService();
 
   Future<void> initialize() async {
     if (_isInitialized) return;
@@ -31,7 +33,7 @@ class TtsService {
 
       // Configurar idioma para português brasileiro com fallbacks
       bool languageSet = false;
-      
+
       // Tentar pt-BR primeiro
       if (languages.contains('pt-BR')) {
         await _flutterTts!.setLanguage('pt-BR');
@@ -112,15 +114,23 @@ class TtsService {
 
     if (!_isSupported || _flutterTts == null) {
       print('TTS não disponível - Vencedor: $teamName');
+      // Mesmo sem TTS, reproduz o som de comemoração
+      await _audioService.playCelebrationSound();
       return;
     }
 
     try {
       await _flutterTts!.stop();
-      final message = 'Parabéns $teamName! Vocês venceram!';
+      final message = 'Parabéns ${teamName.toLowerCase()}! Vocês venceram!';
       await _flutterTts!.speak(message);
+
+      // Aguarda um pouco para o TTS terminar e então reproduz o som
+      await Future.delayed(const Duration(milliseconds: 3000));
+      await _audioService.playCelebrationSound();
     } catch (e) {
       print('Erro ao anunciar vencedor: $e');
+      // Em caso de erro no TTS, ainda tenta reproduzir o som
+      await _audioService.playCelebrationSound();
     }
   }
 
@@ -136,7 +146,7 @@ class TtsService {
 
     try {
       await _flutterTts!.stop();
-      const message = 'Partida iniciada! Boa sorte para todos!';
+      const message = 'Partida iniciada! Bom jogo!';
       await _flutterTts!.speak(message);
     } catch (e) {
       print('Erro ao anunciar início da partida: $e');
@@ -163,5 +173,8 @@ class TtsService {
         print('Erro ao fazer dispose do TTS: $e');
       }
     }
+    _flutterTts = null;
+    _audioService.dispose();
+    _isInitialized = false;
   }
 }
