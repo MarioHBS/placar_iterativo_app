@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:placar_iterativo_app/models/team.dart';
 import 'package:placar_iterativo_app/services/backup_service.dart';
@@ -402,14 +403,6 @@ class _BackupScreenState extends State<BackupScreen> {
           file,
           importTournaments: _importTournaments,
         );
-
-        // Reload providers to update the UI
-        if (importResult.success) {
-          await _teamsNotifier.reloadTeams();
-          if (_importTournaments) {
-            await _tournamentNotifier.reloadTournaments();
-          }
-        }
 
         setState(() {
           _statusMessage = importResult.message;

@@ -593,6 +593,16 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     return GestureDetector(
       onTap: () => _incrementScore(isTeamA),
       onLongPress: () => _decrementScore(isTeamA),
+      onPanUpdate: (details) {
+        // Detecta movimento para baixo (delta Y positivo)
+        if (details.delta.dy > 5) {
+          _decrementScore(isTeamA);
+        }
+        // Detecta movimento para cima (delta Y negativo)
+        else if (details.delta.dy < -5) {
+          _incrementScore(isTeamA);
+        }
+      },
       child: Container(
         width: width,
         height: height,
