@@ -101,4 +101,20 @@ class TeamsNotifier extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  // Reload teams from Hive (useful after import operations)
+  Future<void> reloadTeams() async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+      
+      _teams = _loadTeams();
+      _isLoading = false;
+      _error = null;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+    }
+    notifyListeners();
+  }
 }

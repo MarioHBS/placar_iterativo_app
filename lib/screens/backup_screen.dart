@@ -1,7 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_modular/flutter_modular.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:placar_iterativo_app/models/team.dart';
 import 'package:placar_iterativo_app/services/backup_service.dart';
+import 'package:placar_iterativo_app/providers/teams_provider.dart';
+import 'package:placar_iterativo_app/providers/tournament_provider.dart';
 import 'package:placar_iterativo_app/utils/responsive_utils.dart';
 
 class BackupScreen extends StatefulWidget {
@@ -13,9 +17,18 @@ class BackupScreen extends StatefulWidget {
 
 class _BackupScreenState extends State<BackupScreen> {
   final BackupService _backupService = BackupService();
+  late TeamsNotifier _teamsNotifier;
+  late TournamentNotifier _tournamentNotifier;
   bool _isLoading = false;
   String? _statusMessage;
   bool _importTournaments = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _teamsNotifier = Modular.get<TeamsNotifier>();
+    _tournamentNotifier = Modular.get<TournamentNotifier>();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -161,7 +174,8 @@ class _BackupScreenState extends State<BackupScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: _isLoading ? null : () => _showImportCompleteDialog(),
+                onPressed:
+                    _isLoading ? null : () => _showImportCompleteDialog(),
                 icon: const Icon(Icons.restore),
                 label: const Text('Importar Tudo'),
                 style: ElevatedButton.styleFrom(
@@ -179,21 +193,27 @@ class _BackupScreenState extends State<BackupScreen> {
 
   Widget _buildStatusMessage() {
     return Card(
-      color: _statusMessage!.contains('Erro') ? Colors.red[50] : Colors.green[50],
+      color:
+          _statusMessage!.contains('Erro') ? Colors.red[50] : Colors.green[50],
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
             Icon(
-              _statusMessage!.contains('Erro') ? Icons.error : Icons.check_circle,
-              color: _statusMessage!.contains('Erro') ? Colors.red : Colors.green,
+              _statusMessage!.contains('Erro')
+                  ? Icons.error
+                  : Icons.check_circle,
+              color:
+                  _statusMessage!.contains('Erro') ? Colors.red : Colors.green,
             ),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 _statusMessage!,
                 style: TextStyle(
-                  color: _statusMessage!.contains('Erro') ? Colors.red[800] : Colors.green[800],
+                  color: _statusMessage!.contains('Erro')
+                      ? Colors.red[800]
+                      : Colors.green[800],
                 ),
               ),
             ),
@@ -226,12 +246,17 @@ class _BackupScreenState extends State<BackupScreen> {
     });
 
     try {
-      final jsonContent = await _backupService.exportTeamsOnly();
-      final filename = 'teams_backup_${DateTime.now().millisecondsSinceEpoch}.json';
-      final filePath = await _backupService.saveBackupFile(jsonContent, filename);
-      
+      final exportResult = await _backupService.exportTeamsOnly();
+      final jsonContent = exportResult['jsonContent'] as String;
+      final teams = exportResult['teams'] as List<Team>;
+      final filename =
+          'teams_backup_${DateTime.now().millisecondsSinceEpoch}.json';
+      final filePath =
+          await _backupService.saveBackupFile(jsonContent, filename, teams);
+
       setState(() {
-        _statusMessage = 'Times exportados com sucesso!\nArquivo salvo em: $filePath';
+        _statusMessage =
+            'Times exportados com sucesso!\nArquivo salvo em: $filePath';
       });
     } catch (e) {
       setState(() {
@@ -251,12 +276,17 @@ class _BackupScreenState extends State<BackupScreen> {
     });
 
     try {
-      final jsonContent = await _backupService.exportComplete();
-      final filename = 'complete_backup_${DateTime.now().millisecondsSinceEpoch}.json';
-      final filePath = await _backupService.saveBackupFile(jsonContent, filename);
-      
+      final exportResult = await _backupService.exportComplete();
+      final jsonContent = exportResult['jsonContent'] as String;
+      final teams = exportResult['teams'] as List<Team>;
+      final filename =
+          'complete_backup_${DateTime.now().millisecondsSinceEpoch}.json';
+      final filePath =
+          await _backupService.saveBackupFile(jsonContent, filename, teams);
+
       setState(() {
-        _statusMessage = 'Backup completo exportado com sucesso!\nArquivo salvo em: $filePath';
+        _statusMessage =
+            'Backup completo exportado com sucesso!\nArquivo salvo em: $filePath';
       });
     } catch (e) {
       setState(() {
@@ -273,7 +303,7 @@ class _BackupScreenState extends State<BackupScreen> {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['json'],
+        allowedExtensions: ['json', 'zip'],
       );
 
       if (result != null && result.files.single.path != null) {
@@ -283,8 +313,12 @@ class _BackupScreenState extends State<BackupScreen> {
         });
 
         final file = File(result.files.single.path!);
-        final content = await file.readAsString();
-        final importResult = await _backupService.importTeams(content);
+        final importResult = await _backupService.importTeamsFromFile(file);
+
+        // Reload teams to update the UI
+        if (importResult.success) {
+          await _teamsNotifier.reloadTeams();
+        }
 
         setState(() {
           _statusMessage = importResult.message;
@@ -354,7 +388,7 @@ class _BackupScreenState extends State<BackupScreen> {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['json'],
+        allowedExtensions: ['json', 'zip'],
       );
 
       if (result != null && result.files.single.path != null) {
@@ -364,11 +398,18 @@ class _BackupScreenState extends State<BackupScreen> {
         });
 
         final file = File(result.files.single.path!);
-        final content = await file.readAsString();
-        final importResult = await _backupService.importComplete(
-          content,
+        final importResult = await _backupService.importCompleteFromFile(
+          file,
           importTournaments: _importTournaments,
         );
+
+        // Reload providers to update the UI
+        if (importResult.success) {
+          await _teamsNotifier.reloadTeams();
+          if (_importTournaments) {
+            await _tournamentNotifier.reloadTournaments();
+          }
+        }
 
         setState(() {
           _statusMessage = importResult.message;

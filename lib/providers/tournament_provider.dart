@@ -179,4 +179,20 @@ class TournamentNotifier extends ChangeNotifier {
       await teamsNotifier.updateTeam(team);
     }
   }
+
+  // Reload tournaments from Hive (useful after import operations)
+  Future<void> reloadTournaments() async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+      
+      _tournaments = _loadTournaments();
+      _isLoading = false;
+      _error = null;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+    }
+    notifyListeners();
+  }
 }
