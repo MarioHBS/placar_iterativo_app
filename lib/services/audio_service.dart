@@ -13,7 +13,7 @@ class AudioService {
       // Cria um novo player para cada reprodução
       _audioPlayer = AudioPlayer();
       await _audioPlayer!.play(AssetSource('sounds/applause_cheer.mp3'));
-      
+
       // Libera o player após a reprodução
       _audioPlayer!.onPlayerComplete.listen((_) {
         _audioPlayer?.dispose();

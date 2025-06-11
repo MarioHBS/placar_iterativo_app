@@ -50,9 +50,21 @@ class _TeamsScreenState extends State<TeamsScreen> {
             onSelected: (value) {
               if (value == 'reset_stats') {
                 _showResetStatsDialog();
+              } else if (value == 'backup') {
+                Navigator.pushNamed(context, '/backup');
               }
             },
             itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'backup',
+                child: Row(
+                  children: [
+                    Icon(Icons.backup, size: 20),
+                    SizedBox(width: 8),
+                    Text('Backup e Restauração'),
+                  ],
+                ),
+              ),
               const PopupMenuItem(
                 value: 'reset_stats',
                 child: Row(

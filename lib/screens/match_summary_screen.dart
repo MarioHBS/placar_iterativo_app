@@ -33,7 +33,7 @@ class _MatchSummaryScreenState extends State<MatchSummaryScreen> {
     super.initState();
     teamsNotifier = Modular.get<TeamsNotifier>();
     teamsNotifier.addListener(_onTeamsChanged);
-    
+
     // Toca som de comemoração se há um vencedor
     if (widget.match.winnerId != null) {
       _audioService.playCelebrationSound();

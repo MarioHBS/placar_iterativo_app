@@ -8,6 +8,7 @@ import 'package:placar_iterativo_app/providers/tournament_provider.dart';
 import 'package:placar_iterativo_app/screens/home_screen.dart';
 import 'package:placar_iterativo_app/screens/teams_screen.dart';
 import 'package:placar_iterativo_app/screens/game_config_screen.dart';
+import 'package:placar_iterativo_app/screens/backup_screen.dart';
 
 class AppModule extends Module {
   @override
@@ -25,5 +26,6 @@ class AppModule extends Module {
     r.child('/', child: (context) => const HomeScreen());
     r.child('/teams', child: (context) => const TeamsScreen());
     r.child('/game-config', child: (context) => const GameConfigScreen());
+    r.child('/backup', child: (context) => const BackupScreen());
   }
 }
