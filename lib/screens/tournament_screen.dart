@@ -505,9 +505,9 @@ class _TournamentScreenState extends State<TournamentScreen> {
               fontSize: 12,
             ),
           ),
-          if (team.consecutiveWins > 0) ...[
+          if (team.getTournamentConsecutiveWins(widget.tournament.id) > 0) ...[
             Text(
-              'Sequência: ${team.consecutiveWins}',
+              'Sequência: ${team.getTournamentConsecutiveWins(widget.tournament.id)}',
               style: GoogleFonts.roboto(
                 fontSize: 12,
                 color: Colors.orange,
@@ -641,7 +641,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
             ),
           ),
           subtitle: Text(
-            'Vitórias: ${team.wins} | Sequência: ${team.consecutiveWins}',
+            'Vitórias: ${team.wins} | Sequência: ${team.getTournamentConsecutiveWins(widget.tournament.id)}',
             style: GoogleFonts.roboto(
               fontSize: 12,
             ),

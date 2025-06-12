@@ -56,6 +56,7 @@ class TournamentNotifier extends ChangeNotifier {
     required GameConfig config,
     required List<Team> teams,
     bool shuffleTeams = true,
+    TeamsNotifier? teamsNotifier,
   }) async {
     final tournament = Tournament.create(
       name: name,
@@ -66,6 +67,14 @@ class TournamentNotifier extends ChangeNotifier {
 
     await _tournamentsBox.put(tournament.id, tournament);
     _tournaments = {..._tournaments, tournament.id: tournament};
+    
+    // Update teams in the teams provider if provided
+    if (teamsNotifier != null) {
+      for (final team in teams) {
+        await teamsNotifier.updateTeam(team);
+      }
+    }
+    
     notifyListeners();
     return tournament;
   }

@@ -50,7 +50,7 @@ class GameConfig {
 
   GameConfig({
     required this.id,
-    required this.gameMode,
+    this.gameMode = GameMode.tournament,
     this.endCondition,
     this.timeLimit,
     this.scoreLimit,
