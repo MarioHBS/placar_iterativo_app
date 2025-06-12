@@ -404,18 +404,20 @@ class _BackupScreenState extends State<BackupScreen> {
           importTournaments: _importTournaments,
         );
 
-        setState(() {
-          _statusMessage = importResult.message;
-        });
+        // Reload providers to update the UI
+        if (importResult.success) {
+          await _teamsNotifier.reloadTeams();
+          if (_importTournaments) {
+            await _tournamentNotifier.reloadTournaments();
+          }
+        }
+
+        setState(() => _statusMessage = importResult.message);
       }
     } catch (e) {
-      setState(() {
-        _statusMessage = 'Erro ao importar backup: $e';
-      });
+      setState(() => _statusMessage = 'Erro ao importar backup: $e');
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 }
