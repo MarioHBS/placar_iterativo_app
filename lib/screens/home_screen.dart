@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:placar_iterativo_app/models/tournament.dart';
 import 'package:placar_iterativo_app/providers/teams_provider.dart';
 import 'package:placar_iterativo_app/providers/theme_provider.dart';
+import 'package:placar_iterativo_app/providers/tournament_provider.dart';
 import 'package:placar_iterativo_app/utils/responsive_utils.dart';
 import 'package:placar_iterativo_app/widgets/animated_widgets.dart';
 
@@ -21,20 +22,24 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late ThemeNotifier themeNotifier;
   late TeamsNotifier teamsNotifier;
+  late TournamentNotifier tournamentNotifier;
 
   @override
   void initState() {
     super.initState();
     themeNotifier = Modular.get<ThemeNotifier>();
     teamsNotifier = Modular.get<TeamsNotifier>();
+    tournamentNotifier = Modular.get<TournamentNotifier>();
     themeNotifier.addListener(_onThemeChanged);
     teamsNotifier.addListener(_onTeamsChanged);
+    tournamentNotifier.addListener(_onTournamentsChanged);
   }
 
   @override
   void dispose() {
     themeNotifier.removeListener(_onThemeChanged);
     teamsNotifier.removeListener(_onTeamsChanged);
+    tournamentNotifier.removeListener(_onTournamentsChanged);
     super.dispose();
   }
 
@@ -43,6 +48,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onTeamsChanged() {
+    setState(() {});
+  }
+
+  void _onTournamentsChanged() {
     setState(() {});
   }
 
@@ -102,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             .textTheme
                             .bodyMedium
                             ?.color
-                            ?.withOpacity(0.7),
+                            ?.withValues(alpha: 0.7),
                       ),
                       mobileFontSize: 14,
                       tabletFontSize: 16,
@@ -161,34 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Tournament list
                 SizedBox(
                   height: 300,
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.emoji_events_outlined,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Nenhum torneio ativo',
-                          style: GoogleFonts.roboto(
-                            fontSize: 16,
-                            color: Colors.grey.shade700,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Crie um novo torneio em "Nova Partida"',
-                          style: GoogleFonts.roboto(
-                            fontSize: 14,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  child: _buildActiveTournamentsList(),
                 ),
 
                 // Recent tournaments section
@@ -205,21 +187,133 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Recent tournaments list
                 SizedBox(
                   height: 120,
-                  child: Center(
-                    child: Text(
-                      'Nenhum torneio finalizado',
-                      style: GoogleFonts.roboto(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ),
+                  child: _buildRecentTournamentsList(),
                 ),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildActiveTournamentsList() {
+    if (tournamentNotifier.isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (tournamentNotifier.error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.error_outline,
+              size: 64,
+              color: Colors.red,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Erro ao carregar torneios',
+              style: GoogleFonts.roboto(
+                fontSize: 16,
+                color: Colors.red.shade700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              tournamentNotifier.error!,
+              style: GoogleFonts.roboto(
+                fontSize: 14,
+                color: Colors.grey.shade600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    final activeTournaments = tournamentNotifier.getActiveTournaments();
+
+    if (activeTournaments.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.emoji_events_outlined,
+              size: 64,
+              color: Colors.grey,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Nenhum torneio ativo',
+              style: GoogleFonts.roboto(
+                fontSize: 16,
+                color: Colors.grey.shade700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Crie um novo torneio em "Nova Partida"',
+              style: GoogleFonts.roboto(
+                fontSize: 14,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: activeTournaments.length,
+      itemBuilder: (context, index) {
+        final tournament = activeTournaments[index];
+        return SlideInWidget(
+          delay: Duration(milliseconds: 200 + (index * 100)),
+          begin: const Offset(0, 1),
+          child: _buildTournamentCard(context, tournament),
+        );
+      },
+    );
+  }
+
+  Widget _buildRecentTournamentsList() {
+    if (tournamentNotifier.isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    final completedTournaments = tournamentNotifier.getRecentTournaments(limit: 5);
+
+    if (completedTournaments.isEmpty) {
+      return Center(
+        child: Text(
+          'Nenhum torneio finalizado',
+          style: GoogleFonts.roboto(
+            fontSize: 14,
+            color: Colors.grey.shade600,
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      itemCount: completedTournaments.length,
+      itemBuilder: (context, index) {
+        final tournament = completedTournaments[index];
+        return SlideInWidget(
+          delay: Duration(milliseconds: 200 + (index * 100)),
+          begin: const Offset(1, 0),
+          child: _buildRecentTournamentCard(context, tournament),
+        );
+      },
     );
   }
 

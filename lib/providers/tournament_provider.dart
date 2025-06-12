@@ -105,6 +105,32 @@ class TournamentNotifier extends ChangeNotifier {
     return _tournaments.values.toList();
   }
 
+  // Get active tournaments (not completed)
+  List<Tournament> getActiveTournaments() {
+    return _tournaments.values
+        .where((tournament) => !tournament.isComplete)
+        .toList();
+  }
+
+  // Get completed tournaments
+  List<Tournament> getCompletedTournaments() {
+    return _tournaments.values
+        .where((tournament) => tournament.isComplete)
+        .toList();
+  }
+
+  // Get recent tournaments (completed, sorted by completion date)
+  List<Tournament> getRecentTournaments({int limit = 10}) {
+    final completed = getCompletedTournaments();
+    completed.sort((a, b) {
+      if (a.completedAt == null && b.completedAt == null) return 0;
+      if (a.completedAt == null) return 1;
+      if (b.completedAt == null) return -1;
+      return b.completedAt!.compareTo(a.completedAt!);
+    });
+    return completed.take(limit).toList();
+  }
+
   // Start a new match in the tournament
   Future<Match?> startNextMatch(
     String tournamentId,
