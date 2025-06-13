@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:placar_iterativo_app/models/tournament.dart';
 import 'package:placar_iterativo_app/providers/teams_provider.dart';
 import 'package:placar_iterativo_app/providers/theme_provider.dart';
+import 'package:placar_iterativo_app/providers/tournament_provider.dart';
 import 'package:placar_iterativo_app/utils/responsive_utils.dart';
 import 'package:placar_iterativo_app/widgets/animated_widgets.dart';
 
@@ -21,20 +22,24 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late ThemeNotifier themeNotifier;
   late TeamsNotifier teamsNotifier;
+  late TournamentNotifier tournamentNotifier;
 
   @override
   void initState() {
     super.initState();
     themeNotifier = Modular.get<ThemeNotifier>();
     teamsNotifier = Modular.get<TeamsNotifier>();
+    tournamentNotifier = Modular.get<TournamentNotifier>();
     themeNotifier.addListener(_onThemeChanged);
     teamsNotifier.addListener(_onTeamsChanged);
+    tournamentNotifier.addListener(_onTournamentsChanged);
   }
 
   @override
   void dispose() {
     themeNotifier.removeListener(_onThemeChanged);
     teamsNotifier.removeListener(_onTeamsChanged);
+    tournamentNotifier.removeListener(_onTournamentsChanged);
     super.dispose();
   }
 
@@ -43,6 +48,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onTeamsChanged() {
+    setState(() {});
+  }
+
+  void _onTournamentsChanged() {
     setState(() {});
   }
 
@@ -102,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             .textTheme
                             .bodyMedium
                             ?.color
-                            ?.withOpacity(0.7),
+                            ?.withValues(alpha: 0.7),
                       ),
                       mobileFontSize: 14,
                       tabletFontSize: 16,
@@ -161,34 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Tournament list
                 SizedBox(
                   height: 300,
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.emoji_events_outlined,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Nenhum torneio ativo',
-                          style: GoogleFonts.roboto(
-                            fontSize: 16,
-                            color: Colors.grey.shade700,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Crie um novo torneio em "Nova Partida"',
-                          style: GoogleFonts.roboto(
-                            fontSize: 14,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  child: _buildActiveTournamentsList(),
                 ),
 
                 // Recent tournaments section
@@ -205,21 +187,297 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Recent tournaments list
                 SizedBox(
                   height: 120,
-                  child: Center(
-                    child: Text(
-                      'Nenhum torneio finalizado',
-                      style: GoogleFonts.roboto(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ),
+                  child: _buildRecentTournamentsList(),
                 ),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  void _showDeleteTournamentDialog(BuildContext context, Tournament tournament) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Excluir Torneio',
+            style: GoogleFonts.roboto(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Tem certeza que deseja excluir o torneio "${tournament.name}"?',
+                style: GoogleFonts.roboto(),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.orange.shade200),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.warning,
+                      color: Colors.orange.shade700,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Esta ação não pode ser desfeita. Todas as partidas e estatísticas do torneio serão perdidas.',
+                        style: GoogleFonts.roboto(
+                          fontSize: 12,
+                          color: Colors.orange.shade700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Cancelar',
+                style: GoogleFonts.roboto(
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _deleteTournament(tournament);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: Text(
+                'Excluir',
+                style: GoogleFonts.roboto(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteTournament(Tournament tournament) async {
+    try {
+      // Show loading indicator
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Excluindo torneio...',
+                style: GoogleFonts.roboto(),
+              ),
+            ],
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      // Delete the tournament
+      await tournamentNotifier.deleteTournament(tournament.id);
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(
+                  Icons.check_circle,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Torneio "${tournament.name}" excluído com sucesso',
+                  style: GoogleFonts.roboto(),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(
+                  Icons.error,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Erro ao excluir torneio: ${e.toString()}',
+                    style: GoogleFonts.roboto(),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildActiveTournamentsList() {
+    if (tournamentNotifier.isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (tournamentNotifier.error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.error_outline,
+              size: 64,
+              color: Colors.red,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Erro ao carregar torneios',
+              style: GoogleFonts.roboto(
+                fontSize: 16,
+                color: Colors.red.shade700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              tournamentNotifier.error!,
+              style: GoogleFonts.roboto(
+                fontSize: 14,
+                color: Colors.grey.shade600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    final activeTournaments = tournamentNotifier.getActiveTournaments();
+
+    if (activeTournaments.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.emoji_events_outlined,
+              size: 64,
+              color: Colors.grey,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Nenhum torneio ativo',
+              style: GoogleFonts.roboto(
+                fontSize: 16,
+                color: Colors.grey.shade700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Crie um novo torneio em "Nova Partida"',
+              style: GoogleFonts.roboto(
+                fontSize: 14,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: activeTournaments.length,
+      itemBuilder: (context, index) {
+        final tournament = activeTournaments[index];
+        return SlideInWidget(
+          delay: Duration(milliseconds: 200 + (index * 100)),
+          begin: const Offset(0, 1),
+          child: _buildTournamentCard(context, tournament),
+        );
+      },
+    );
+  }
+
+  Widget _buildRecentTournamentsList() {
+    if (tournamentNotifier.isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    final completedTournaments = tournamentNotifier.getRecentTournaments(limit: 5);
+
+    if (completedTournaments.isEmpty) {
+      return Center(
+        child: Text(
+          'Nenhum torneio finalizado',
+          style: GoogleFonts.roboto(
+            fontSize: 14,
+            color: Colors.grey.shade600,
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      itemCount: completedTournaments.length,
+      itemBuilder: (context, index) {
+        final tournament = completedTournaments[index];
+        return SlideInWidget(
+          delay: Duration(milliseconds: 200 + (index * 100)),
+          begin: const Offset(1, 0),
+          child: _buildRecentTournamentCard(context, tournament),
+        );
+      },
     );
   }
 
@@ -306,6 +564,27 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: Colors.white,
                       ),
                     ),
+                  ),
+                  const SizedBox(width: 8),
+                  PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_vert, color: Colors.grey),
+                    onSelected: (value) {
+                      if (value == 'delete') {
+                        _showDeleteTournamentDialog(context, tournament);
+                      }
+                    },
+                    itemBuilder: (BuildContext context) => [
+                      const PopupMenuItem<String>(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete, color: Colors.red),
+                            SizedBox(width: 8),
+                            Text('Excluir torneio'),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

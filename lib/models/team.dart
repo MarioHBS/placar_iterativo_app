@@ -35,6 +35,9 @@ class Team {
   @HiveField(9)
   bool isWaiting;
 
+  @HiveField(10)
+  Map<String, int> tournamentConsecutiveWins;
+
   Team({
     required this.id,
     required this.name,
@@ -46,6 +49,7 @@ class Team {
     this.losses = 0,
     this.consecutiveWins = 0,
     this.isWaiting = false,
+    this.tournamentConsecutiveWins = const {},
   });
 
   // Factory constructor to create a team with default values
@@ -73,6 +77,7 @@ class Team {
     int? losses,
     int? consecutiveWins,
     bool? isWaiting,
+    Map<String, int>? tournamentConsecutiveWins,
   }) {
     return Team(
       id: id ?? this.id,
@@ -85,6 +90,7 @@ class Team {
       losses: losses ?? this.losses,
       consecutiveWins: consecutiveWins ?? this.consecutiveWins,
       isWaiting: isWaiting ?? this.isWaiting,
+      tournamentConsecutiveWins: tournamentConsecutiveWins ?? Map<String, int>.from(this.tournamentConsecutiveWins),
     );
   }
 
@@ -97,21 +103,50 @@ class Team {
   }
 
   // Add a win to the team's record
-  void addWin() {
+  void addWin([String? tournamentId]) {
     wins++;
     consecutiveWins++;
+    if (tournamentId != null) {
+      tournamentConsecutiveWins = Map<String, int>.from(tournamentConsecutiveWins);
+      tournamentConsecutiveWins[tournamentId] = getTournamentConsecutiveWins(tournamentId) + 1;
+    }
   }
 
   // Add a loss to the team's record
-  void addLoss() {
+  void addLoss([String? tournamentId]) {
     losses++;
     consecutiveWins = 0;
     isWaiting = false;
+    if (tournamentId != null) {
+      tournamentConsecutiveWins = Map<String, int>.from(tournamentConsecutiveWins);
+      tournamentConsecutiveWins[tournamentId] = 0;
+    }
   }
 
   // Reset consecutive wins (used when returning from waiting mode)
-  void resetConsecutiveWins() {
+  void resetConsecutiveWins([String? tournamentId]) {
     consecutiveWins = 0;
+    if (tournamentId != null) {
+      tournamentConsecutiveWins = Map<String, int>.from(tournamentConsecutiveWins);
+      tournamentConsecutiveWins[tournamentId] = 0;
+    }
+  }
+
+  // Get consecutive wins for a specific tournament
+  int getTournamentConsecutiveWins(String tournamentId) {
+    return tournamentConsecutiveWins[tournamentId] ?? 0;
+  }
+
+  // Reset consecutive wins for a specific tournament
+  void resetTournamentConsecutiveWins(String tournamentId) {
+    tournamentConsecutiveWins = Map<String, int>.from(tournamentConsecutiveWins);
+    tournamentConsecutiveWins[tournamentId] = 0;
+  }
+
+  // Initialize tournament consecutive wins (called when starting a new tournament)
+  void initializeTournamentStats(String tournamentId) {
+    tournamentConsecutiveWins = Map<String, int>.from(tournamentConsecutiveWins);
+    tournamentConsecutiveWins[tournamentId] = 0;
   }
 
   // Calculate win rate as a percentage

@@ -4,7 +4,6 @@ import 'package:flutter_modular/flutter_modular.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:placar_iterativo_app/models/game_config.dart';
 import 'package:placar_iterativo_app/models/team.dart';
-import 'package:placar_iterativo_app/models/tournament.dart';
 import 'package:placar_iterativo_app/providers/teams_provider.dart';
 import 'package:placar_iterativo_app/providers/tournament_provider.dart';
 import 'package:placar_iterativo_app/screens/tournament_screen.dart';
@@ -277,7 +276,7 @@ class _TournamentSetupScreenState extends State<TournamentSetupScreen> {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: team.color.withOpacity(0.2),
+          color: team.color.withValues(alpha: 0.2),
           shape: BoxShape.circle,
           border: Border.all(color: team.color, width: 2),
         ),
@@ -444,6 +443,7 @@ class _TournamentSetupScreenState extends State<TournamentSetupScreen> {
       config: widget.gameConfig,
       teams: _selectedTeams,
       shuffleTeams: _shuffleTeams,
+      teamsNotifier: teamsNotifier,
     );
 
     if (!mounted) return;

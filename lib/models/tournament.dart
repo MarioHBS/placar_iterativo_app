@@ -124,8 +124,15 @@ class Tournament {
     }
     // If shuffleTeams is false, maintain the original selection order
 
+    final tournamentId = DateTime.now().millisecondsSinceEpoch.toString();
+    
+    // Initialize tournament-specific consecutive wins counter for all teams
+    for (final team in teams) {
+      team.initializeTournamentStats(tournamentId);
+    }
+
     return Tournament(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: tournamentId,
       name: name,
       config: config,
       teamIds: teamIds,
@@ -169,7 +176,7 @@ class Tournament {
       final waitingTeam = teamsMap[waitingTeamId]!;
       waitingTeam.isWaiting = false;
       waitingTeam
-          .resetConsecutiveWins(); // Reset consecutive wins when returning
+          .resetConsecutiveWins(id); // Reset consecutive wins when returning (tournament-specific)
       waitingTeamId = null;
       challengerId = null; // Clear challenger as the match is complete
     }
@@ -179,8 +186,8 @@ class Tournament {
       final winner = teamsMap[match.winnerId]!;
       final loser = teamsMap[match.loserId]!;
 
-      winner.addWin();
-      loser.addLoss();
+      winner.addWin(id); // Pass tournament ID
+      loser.addLoss(id); // Pass tournament ID
 
       // Update queue - "King of the Hill" logic
       // Remove the loser from the queue (if they're in it)
@@ -198,7 +205,7 @@ class Tournament {
       // Check if winner should enter waiting mode (only if they weren't just returning and waiting mode is enabled)
       if (!waitingTeamReturned &&
           config.waitingModeEnabled &&
-          winner.consecutiveWins >= config.winsForWaitingMode) {
+          winner.getTournamentConsecutiveWins(id) >= config.winsForWaitingMode) {
         // Winner enters waiting mode, remove from queue
         queueIds.remove(winner.id);
         waitingTeamId = winner.id;
@@ -254,6 +261,8 @@ class Tournament {
     // Reset all team stats
     for (final teamId in teamIds) {
       teamsMap[teamId]?.resetStats();
+      // Initialize tournament-specific consecutive wins counter
+      teamsMap[teamId]?.initializeTournamentStats(id);
     }
 
     // Reset queue
