@@ -197,6 +197,170 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _showDeleteTournamentDialog(BuildContext context, Tournament tournament) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Excluir Torneio',
+            style: GoogleFonts.roboto(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Tem certeza que deseja excluir o torneio "${tournament.name}"?',
+                style: GoogleFonts.roboto(),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.orange.shade200),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.warning,
+                      color: Colors.orange.shade700,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Esta ação não pode ser desfeita. Todas as partidas e estatísticas do torneio serão perdidas.',
+                        style: GoogleFonts.roboto(
+                          fontSize: 12,
+                          color: Colors.orange.shade700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Cancelar',
+                style: GoogleFonts.roboto(
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _deleteTournament(tournament);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: Text(
+                'Excluir',
+                style: GoogleFonts.roboto(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteTournament(Tournament tournament) async {
+    try {
+      // Show loading indicator
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Excluindo torneio...',
+                style: GoogleFonts.roboto(),
+              ),
+            ],
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      // Delete the tournament
+      await tournamentNotifier.deleteTournament(tournament.id);
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(
+                  Icons.check_circle,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Torneio "${tournament.name}" excluído com sucesso',
+                  style: GoogleFonts.roboto(),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(
+                  Icons.error,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Erro ao excluir torneio: ${e.toString()}',
+                    style: GoogleFonts.roboto(),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    }
+  }
+
   Widget _buildActiveTournamentsList() {
     if (tournamentNotifier.isLoading) {
       return const Center(
@@ -400,6 +564,27 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: Colors.white,
                       ),
                     ),
+                  ),
+                  const SizedBox(width: 8),
+                  PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_vert, color: Colors.grey),
+                    onSelected: (value) {
+                      if (value == 'delete') {
+                        _showDeleteTournamentDialog(context, tournament);
+                      }
+                    },
+                    itemBuilder: (BuildContext context) => [
+                      const PopupMenuItem<String>(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete, color: Colors.red),
+                            SizedBox(width: 8),
+                            Text('Excluir torneio'),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
