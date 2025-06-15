@@ -132,4 +132,31 @@ class MatchesNotifier extends ChangeNotifier {
       await updateMatch(match);
     }
   }
+
+  // Get active match (most recent incomplete match)
+  Match? getActiveMatch() {
+    final activeMatches = _matches.values
+        .where((match) => !match.isComplete)
+        .where((match) => DateTime.now().difference(match.startTime).inHours < 6) // Partidas de até 6h
+        .toList();
+    
+    if (activeMatches.isEmpty) return null;
+    
+    // Return the most recent active match
+    activeMatches.sort((a, b) => b.startTime.compareTo(a.startTime));
+    return activeMatches.first;
+  }
+
+  // Get all active matches
+  List<Match> getActiveMatches() {
+    return _matches.values
+        .where((match) => !match.isComplete)
+        .where((match) => DateTime.now().difference(match.startTime).inHours < 6)
+        .toList();
+  }
+
+  // Check if there are any active matches
+  bool hasActiveMatch() {
+    return getActiveMatch() != null;
+  }
 }

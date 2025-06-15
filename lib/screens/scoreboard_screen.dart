@@ -12,23 +12,25 @@ import 'package:placar_iterativo_app/providers/matches_provider.dart';
 import 'package:placar_iterativo_app/services/tts_service.dart';
 
 class ScoreboardScreen extends StatefulWidget {
-  final Match match;
+  final Match? match;
   final Team teamA;
   final Team teamB;
-  final GameConfig gameConfig;
+  final GameConfig? gameConfig;
   final VoidCallback? onMatchComplete;
   final String? tournamentName;
   final List<Team>? nextTeamsInQueue;
+  final Match? existingMatch;
 
   const ScoreboardScreen({
     super.key,
-    required this.match,
+    this.match,
     required this.teamA,
     required this.teamB,
-    required this.gameConfig,
+    this.gameConfig,
     this.onMatchComplete,
     this.tournamentName,
     this.nextTeamsInQueue,
+    this.existingMatch,
   });
 
   @override
@@ -44,12 +46,38 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
   bool _isTimeUp = false;
   bool _isOrientationLocked = false;
   bool _showOrientationMenu = false;
+  late Match currentMatch;
+  late GameConfig currentGameConfig;
 
   @override
   void initState() {
     super.initState();
     currentGameNotifier = Modular.get<CurrentGameNotifier>();
     matchesNotifier = Modular.get<MatchesNotifier>();
+    
+    // Use existing match or create new one
+    if (widget.existingMatch != null) {
+      currentMatch = widget.existingMatch!;
+      // Calculate elapsed time from existing match
+      _elapsedSeconds = DateTime.now().difference(currentMatch.startTime).inSeconds;
+    } else if (widget.match != null) {
+      currentMatch = widget.match!;
+    } else {
+      // Create a new match if none provided
+      currentMatch = Match.create(
+        teamA: widget.teamA,
+        teamB: widget.teamB,
+      );
+    }
+    
+    // Use provided gameConfig or create a default one
+    currentGameConfig = widget.gameConfig ?? GameConfig(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      endCondition: EndCondition.score,
+      scoreLimit: 15,
+      timeLimit: 1800, // 30 minutos
+    );
+    
     currentGameNotifier.addListener(_onGameStateChanged);
     matchesNotifier.addListener(_onMatchesChanged);
     _initializeTts();
@@ -159,7 +187,7 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
         _elapsedSeconds++;
 
         // Check if time limit is reached
-        if (widget.gameConfig.shouldEndByTime(_elapsedSeconds)) {
+        if (currentGameConfig.shouldEndByTime(_elapsedSeconds)) {
           _isTimeUp = true;
           _endMatch();
         }
@@ -169,17 +197,17 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
 
   void _incrementScore(bool isTeamA) async {
     if (isTeamA) {
-      await matchesNotifier.incrementTeamAScore(widget.match.id);
+      await matchesNotifier.incrementTeamAScore(currentMatch.id);
     } else {
-      await matchesNotifier.incrementTeamBScore(widget.match.id);
+      await matchesNotifier.incrementTeamBScore(currentMatch.id);
     }
 
-    // Get the updated match
-    final updatedMatch = matchesNotifier.matches[widget.match.id];
+    // Get updated match
+    final updatedMatch = matchesNotifier.matches[currentMatch.id];
     if (updatedMatch == null) return;
 
     // Check if score limit is reached
-    final isScoreLimitReached = widget.gameConfig
+    final isScoreLimitReached = currentGameConfig
         .shouldEndByScore(updatedMatch.teamAScore, updatedMatch.teamBScore);
 
     // Only announce score if limit is not reached to avoid interruption
@@ -201,9 +229,9 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
 
   void _decrementScore(bool isTeamA) async {
     if (isTeamA) {
-      await matchesNotifier.decrementTeamAScore(widget.match.id);
+      await matchesNotifier.decrementTeamAScore(currentMatch.id);
     } else {
-      await matchesNotifier.decrementTeamBScore(widget.match.id);
+      await matchesNotifier.decrementTeamBScore(currentMatch.id);
     }
   }
 
@@ -211,7 +239,7 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     _timer.cancel();
 
     // Determinar o vencedor e anunciar
-    final updatedMatch = matchesNotifier.matches[widget.match.id];
+    final updatedMatch = matchesNotifier.matches[currentMatch.id];
     if (updatedMatch != null) {
       final winner = updatedMatch.teamAScore > updatedMatch.teamBScore
           ? widget.teamA
@@ -223,7 +251,7 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
       });
     }
 
-    matchesNotifier.completeMatch(widget.match.id).then((_) {
+    matchesNotifier.completeMatch(currentMatch.id).then((_) {
       if (widget.onMatchComplete != null) {
         widget.onMatchComplete!();
       }
@@ -238,9 +266,9 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
 
   Match _getCurrentMatch() {
     if (!matchesNotifier.isLoading && matchesNotifier.error == null) {
-      return matchesNotifier.matches[widget.match.id] ?? widget.match;
+      return matchesNotifier.matches[currentMatch.id] ?? currentMatch;
     }
-    return widget.match;
+    return currentMatch;
   }
 
   Color _getDividerColor() {

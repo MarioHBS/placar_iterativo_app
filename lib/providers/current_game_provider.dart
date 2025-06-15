@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_modular/flutter_modular.dart';
 import 'package:placar_iterativo_app/models/match.dart';
-import 'package:placar_iterativo_app/models/team.dart';
 import 'package:placar_iterativo_app/models/tournament.dart';
 import 'package:placar_iterativo_app/providers/matches_provider.dart';
 import 'package:placar_iterativo_app/providers/teams_provider.dart';
@@ -151,6 +151,37 @@ class CurrentGameNotifier extends ChangeNotifier {
   void _stopTimer() {
     _gameTimer?.cancel();
     _gameTimer = null;
+  }
+
+  // Save current game state when navigating away
+  void saveGameState() {
+    if (_gameState == GameState.playing || _gameState == GameState.paused) {
+      // Game state is automatically persisted through MatchesNotifier
+      // This method can be used for additional state persistence if needed
+    }
+  }
+
+  // Restore game state when returning to the app
+  Future<void> restoreGameState() async {
+    final matchesNotifier = Modular.get<MatchesNotifier>();
+    final activeMatch = matchesNotifier.getActiveMatch();
+    
+    if (activeMatch != null) {
+      // Calculate elapsed time from the match start time
+      final elapsed = DateTime.now().difference(activeMatch.startTime).inSeconds;
+      _elapsedSeconds = elapsed;
+      
+      // Set state to playing if there's an active match
+      _gameState = GameState.playing;
+      _startTimer();
+      notifyListeners();
+    }
+  }
+
+  // Check if there's an active game that can be resumed
+  bool canResumeGame() {
+    final matchesNotifier = Modular.get<MatchesNotifier>();
+    return matchesNotifier.hasActiveMatch();
   }
 
   @override

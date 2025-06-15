@@ -5,12 +5,14 @@ import 'package:placar_iterativo_app/models/tournament.dart';
 import 'package:placar_iterativo_app/providers/teams_provider.dart';
 import 'package:placar_iterativo_app/providers/theme_provider.dart';
 import 'package:placar_iterativo_app/providers/tournament_provider.dart';
+import 'package:placar_iterativo_app/providers/matches_provider.dart';
 import 'package:placar_iterativo_app/utils/responsive_utils.dart';
 import 'package:placar_iterativo_app/widgets/animated_widgets.dart';
 
 import 'game_config_screen.dart';
 import 'teams_screen.dart';
 import 'tournament_screen.dart';
+import 'scoreboard_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late ThemeNotifier themeNotifier;
   late TeamsNotifier teamsNotifier;
   late TournamentNotifier tournamentNotifier;
+  late MatchesNotifier matchesNotifier;
 
   @override
   void initState() {
@@ -30,9 +33,11 @@ class _HomeScreenState extends State<HomeScreen> {
     themeNotifier = Modular.get<ThemeNotifier>();
     teamsNotifier = Modular.get<TeamsNotifier>();
     tournamentNotifier = Modular.get<TournamentNotifier>();
+    matchesNotifier = Modular.get<MatchesNotifier>();
     themeNotifier.addListener(_onThemeChanged);
     teamsNotifier.addListener(_onTeamsChanged);
     tournamentNotifier.addListener(_onTournamentsChanged);
+    matchesNotifier.addListener(_onMatchesChanged);
   }
 
   @override
@@ -40,6 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
     themeNotifier.removeListener(_onThemeChanged);
     teamsNotifier.removeListener(_onTeamsChanged);
     tournamentNotifier.removeListener(_onTournamentsChanged);
+    matchesNotifier.removeListener(_onMatchesChanged);
     super.dispose();
   }
 
@@ -53,6 +59,31 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _onTournamentsChanged() {
     setState(() {});
+  }
+
+  void _onMatchesChanged() {
+    setState(() {});
+  }
+
+  void _resumeActiveMatch() {
+    final activeMatch = matchesNotifier.getActiveMatch();
+    if (activeMatch != null) {
+      final teamA = teamsNotifier.teams[activeMatch.teamAId];
+      final teamB = teamsNotifier.teams[activeMatch.teamBId];
+
+      if (teamA != null && teamB != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ScoreboardScreen(
+              match: activeMatch,
+              teamA: teamA,
+              teamB: teamB,
+            ),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -120,6 +151,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 SizedBox(height: ResponsiveUtils.getSpacing(context)),
+
+                // Active match banner
+                if (matchesNotifier.hasActiveMatch()) ...[
+                  SlideInWidget(
+                    delay: const Duration(milliseconds: 500),
+                    begin: const Offset(0, -1),
+                    child: _buildActiveMatchBanner(),
+                  ),
+                  const SizedBox(height: 16),
+                ],
 
                 // Main actions
                 SlideInWidget(
@@ -197,7 +238,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showDeleteTournamentDialog(BuildContext context, Tournament tournament) {
+  void _showDeleteTournamentDialog(
+      BuildContext context, Tournament tournament) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -453,7 +495,8 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    final completedTournaments = tournamentNotifier.getRecentTournaments(limit: 5);
+    final completedTournaments =
+        tournamentNotifier.getRecentTournaments(limit: 5);
 
     if (completedTournaments.isEmpty) {
       return Center(
@@ -737,6 +780,170 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildActiveMatchBanner() {
+    final activeMatch = matchesNotifier.getActiveMatch();
+    if (activeMatch == null) return const SizedBox();
+
+    final teamA = teamsNotifier.teams[activeMatch.teamAId];
+    final teamB = teamsNotifier.teams[activeMatch.teamBId];
+
+    if (teamA == null || teamB == null) return const SizedBox();
+
+    final duration = DateTime.now().difference(activeMatch.startTime);
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes % 60;
+    final durationText = hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.orange.shade400, Colors.red.shade400],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.orange.withValues(alpha: 0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.play_circle_filled,
+                color: Colors.white,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'PARTIDA EM ANDAMENTO',
+                style: GoogleFonts.roboto(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  durationText,
+                  style: GoogleFonts.roboto(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  children: [
+                    Text(
+                      teamA.name,
+                      style: GoogleFonts.roboto(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      activeMatch.teamAScore.toString(),
+                      style: GoogleFonts.bebasNeue(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  'VS',
+                  style: GoogleFonts.bebasNeue(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  children: [
+                    Text(
+                      teamB.name,
+                      style: GoogleFonts.roboto(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      activeMatch.teamBScore.toString(),
+                      style: GoogleFonts.bebasNeue(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _resumeActiveMatch,
+              icon: const Icon(Icons.play_arrow, color: Colors.orange),
+              label: Text(
+                'RETOMAR PARTIDA',
+                style: GoogleFonts.roboto(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.orange,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
