@@ -153,6 +153,25 @@ class TtsService {
     }
   }
 
+  Future<void> announceMatchResume() async {
+    if (!_isInitialized) {
+      await initialize();
+    }
+
+    if (!_isSupported || _flutterTts == null) {
+      print('TTS não disponível - Partida retomada!');
+      return;
+    }
+
+    try {
+      await _flutterTts!.stop();
+      const message = 'Partida retomada! Continuem jogando!';
+      await _flutterTts!.speak(message);
+    } catch (e) {
+      print('Erro ao anunciar retomada da partida: $e');
+    }
+  }
+
   Future<void> stop() async {
     if (!_isSupported || _flutterTts == null) {
       return;

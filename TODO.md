@@ -31,6 +31,10 @@
 - [x] **Tournament Mode** - Modo torneio (modo livre removido)
 - [x] **End Conditions** - Por tempo, pontuação ou ambos
 - [x] **Team Image Support** - Suporte a imagens das equipes
+- [x] **Advanced Score Controls** - Controles avançados de pontuação no placar
+  - [x] Toque simples para incrementar pontuação
+  - [x] Toque longo para decrementar pontuação
+  - [x] Gestos verticais (deslizar para cima/baixo) para controlar pontuação
 
 ## 🔄 Em Desenvolvimento/Refinamento
 

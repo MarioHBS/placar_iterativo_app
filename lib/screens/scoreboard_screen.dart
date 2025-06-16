@@ -54,12 +54,13 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     super.initState();
     currentGameNotifier = Modular.get<CurrentGameNotifier>();
     matchesNotifier = Modular.get<MatchesNotifier>();
-    
+
     // Use existing match or create new one
     if (widget.existingMatch != null) {
       currentMatch = widget.existingMatch!;
       // Calculate elapsed time from existing match
-      _elapsedSeconds = DateTime.now().difference(currentMatch.startTime).inSeconds;
+      _elapsedSeconds =
+          DateTime.now().difference(currentMatch.startTime).inSeconds;
     } else if (widget.match != null) {
       currentMatch = widget.match!;
     } else {
@@ -69,15 +70,16 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
         teamB: widget.teamB,
       );
     }
-    
+
     // Use provided gameConfig or create a default one
-    currentGameConfig = widget.gameConfig ?? GameConfig(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      endCondition: EndCondition.score,
-      scoreLimit: 15,
-      timeLimit: 1800, // 30 minutos
-    );
-    
+    currentGameConfig = widget.gameConfig ??
+        GameConfig(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          endCondition: EndCondition.score,
+          scoreLimit: 15,
+          timeLimit: 1800, // 30 minutos
+        );
+
     currentGameNotifier.addListener(_onGameStateChanged);
     matchesNotifier.addListener(_onMatchesChanged);
     _initializeTts();
@@ -87,9 +89,15 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
 
   Future<void> _initializeTts() async {
     await _ttsService.initialize();
-    // Anunciar início da partida após um pequeno delay
+    // Anunciar início ou retomada da partida após um pequeno delay
     Future.delayed(const Duration(seconds: 1), () {
-      _ttsService.announceMatchStart();
+      if (widget.existingMatch != null) {
+        // Se é uma partida existente, anunciar retomada
+        _ttsService.announceMatchResume();
+      } else {
+        // Se é uma partida nova, anunciar início
+        _ttsService.announceMatchStart();
+      }
     });
   }
 
@@ -207,8 +215,8 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     if (updatedMatch == null) return;
 
     // Check if score limit is reached
-    final isScoreLimitReached = currentGameConfig
-        .shouldEndByScore(updatedMatch.teamAScore, updatedMatch.teamBScore);
+    final isScoreLimitReached = currentGameConfig.shouldEndByScore(
+        updatedMatch.teamAScore, updatedMatch.teamBScore);
 
     // Only announce score if limit is not reached to avoid interruption
     if (!isScoreLimitReached) {
@@ -621,13 +629,13 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     return GestureDetector(
       onTap: () => _incrementScore(isTeamA),
       onLongPress: () => _decrementScore(isTeamA),
-      onPanUpdate: (details) {
-        // Detecta movimento para baixo (delta Y positivo)
-        if (details.delta.dy > 5) {
+      onVerticalDragEnd: (details) {
+        final velocity = details.velocity.pixelsPerSecond.dy;
+        // Movimento para baixo (delta Y positivo)
+        // Movimento para cima (delta Y negativo)
+        if (velocity > 0) {
           _decrementScore(isTeamA);
-        }
-        // Detecta movimento para cima (delta Y negativo)
-        else if (details.delta.dy < -5) {
+        } else if (velocity < 0) {
           _incrementScore(isTeamA);
         }
       },
