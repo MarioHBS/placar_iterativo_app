@@ -14,7 +14,7 @@ void main() {
       gameConfig = GameConfig(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         scoreLimit: 10,
-        timeLimit: 900,
+        timeLimit: 900, //15 * 60
       );
 
       teams = [
@@ -163,9 +163,7 @@ void main() {
       tournament.currentMatchId = 'match-1';
 
       // Act
-      final teamsMap = Map<String, Team>.fromEntries(
-        teams.map((team) => MapEntry(team.id, team)),
-      );
+      final teamsMap = {for (final team in teams) team.id: team};
       tournament.reset(teamsMap);
 
       // Assert
