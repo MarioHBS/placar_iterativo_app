@@ -162,14 +162,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 16),
                 ],
 
-                // Main actions
+                // BOTÃO INICIAR TORNEIO
                 SlideInWidget(
                   delay: const Duration(milliseconds: 600),
                   begin: const Offset(-1, 0),
                   child: _buildActionButton(
                     context: context,
                     icon: Icons.sports_score,
-                    label: 'Nova Partida',
+                    label: 'Novo Torneio',
                     color: Colors.blue,
                     onTap: () => Navigator.push(
                       context,
@@ -180,6 +180,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
+                // BOTÃO GERENCIAR TIMES:
                 SlideInWidget(
                   delay: const Duration(milliseconds: 800),
                   begin: const Offset(1, 0),
@@ -637,15 +638,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Text(
                     'Partidas: ${tournament.matchIds.length}',
-                    style: GoogleFonts.roboto(
-                      fontSize: 14,
-                    ),
+                    style: GoogleFonts.roboto(fontSize: 14),
                   ),
                   Text(
                     'Times: ${tournament.teamIds.length}',
-                    style: GoogleFonts.roboto(
-                      fontSize: 14,
-                    ),
+                    style: GoogleFonts.roboto(fontSize: 14),
                   ),
                 ],
               ),
