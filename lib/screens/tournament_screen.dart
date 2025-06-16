@@ -8,8 +8,9 @@ import 'package:placar_iterativo_app/models/tournament.dart';
 import 'package:placar_iterativo_app/providers/matches_provider.dart';
 import 'package:placar_iterativo_app/providers/teams_provider.dart';
 import 'package:placar_iterativo_app/providers/tournament_provider.dart';
-import 'package:placar_iterativo_app/screens/match_summary_screen.dart';
 import 'package:placar_iterativo_app/screens/scoreboard_screen.dart';
+import 'package:placar_iterativo_app/screens/tournament_ranking_screen.dart';
+import 'package:placar_iterativo_app/screens/match_summary_screen.dart';
 
 class TournamentScreen extends StatefulWidget {
   final Tournament tournament;
@@ -51,9 +52,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
     super.dispose();
   }
 
-  void _onStateChanged() {
-    setState(() {});
-  }
+  void _onStateChanged() => setState(() {});
 
   void _loadNextMatch() {
     // Get the latest tournament data
@@ -359,21 +358,49 @@ class _TournamentScreenState extends State<TournamentScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _resetTournament,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                ),
-                child: Text(
-                  'Reiniciar Torneio',
-                  style: GoogleFonts.roboto(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: _showTournamentRanking,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.amber,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.emoji_events, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Ver Ranking',
+                          style: GoogleFonts.roboto(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                  ElevatedButton(
+                    onPressed: _resetTournament,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                    ),
+                    child: Text(
+                      'Reiniciar Torneio',
+                      style: GoogleFonts.roboto(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -781,6 +808,16 @@ class _TournamentScreenState extends State<TournamentScreen> {
     final minutes = duration.inMinutes;
     final seconds = duration.inSeconds % 60;
     return '$minutes:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  void _showTournamentRanking() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => TournamentRankingScreen(
+          tournament: _tournament!,
+        ),
+      ),
+    );
   }
 
   void _resetTournament() {

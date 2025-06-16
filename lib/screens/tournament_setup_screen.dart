@@ -354,7 +354,7 @@ class _TournamentSetupScreenState extends State<TournamentSetupScreen> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: team.color.withOpacity(0.2),
+                    color: team.color.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                     border: Border.all(color: team.color, width: 2),
                   ),

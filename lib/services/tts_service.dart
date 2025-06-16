@@ -134,6 +134,25 @@ class TtsService {
     }
   }
 
+  Future<void> announceTournamentChampion(String teamName, String tournamentName) async {
+    if (!_isInitialized) {
+      await initialize();
+    }
+
+    if (!_isSupported || _flutterTts == null) {
+      print('TTS não disponível - Campeão do torneio: $teamName');
+      return;
+    }
+
+    try {
+      await _flutterTts!.stop();
+      final message = 'Parabéns $teamName! Vocês são os campeões do torneio $tournamentName!';
+      await _flutterTts!.speak(message);
+    } catch (e) {
+      print('Erro ao anunciar campeão do torneio: $e');
+    }
+  }
+
   Future<void> announceMatchStart() async {
     if (!_isInitialized) {
       await initialize();

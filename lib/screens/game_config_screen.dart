@@ -76,7 +76,7 @@ class _GameConfigScreenState extends State<GameConfigScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Nova Partida',
+          'Novo Torneio',
           style: GoogleFonts.roboto(
             fontWeight: FontWeight.bold,
           ),
@@ -146,8 +146,6 @@ class _GameConfigScreenState extends State<GameConfigScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildModeSelection(),
-        SizedBox(height: ResponsiveUtils.getSpacing(context)),
         _buildTeamSelection(teamsList),
         SizedBox(height: ResponsiveUtils.getSpacing(context)),
         if (_selectedMode == GameMode.tournament) ...[
@@ -165,8 +163,6 @@ class _GameConfigScreenState extends State<GameConfigScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildModeSelection(),
-        SizedBox(height: ResponsiveUtils.getSpacing(context)),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -197,8 +193,6 @@ class _GameConfigScreenState extends State<GameConfigScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildModeSelection(),
-        SizedBox(height: ResponsiveUtils.getSpacing(context)),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -232,86 +226,7 @@ class _GameConfigScreenState extends State<GameConfigScreen> {
     );
   }
 
-  Widget _buildModeSelection() {
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Modo de Jogo',
-              style: GoogleFonts.roboto(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Center(
-              child: _buildModeCard(
-                title: 'Torneio',
-                icon: Icons.emoji_events,
-                description: 'Gerenciamento de fila e regras de término',
-                isSelected: true,
-                onTap: () {},
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
-  Widget _buildModeCard({
-    required String title,
-    required IconData icon,
-    required String description,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.blue.withOpacity(0.1) : Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected ? Colors.blue : Colors.grey.shade300,
-            width: 2,
-          ),
-        ),
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              size: 48,
-              color: isSelected ? Colors.blue : Colors.grey,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: GoogleFonts.roboto(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: isSelected ? Colors.blue : Colors.black,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              description,
-              style: GoogleFonts.roboto(
-                fontSize: 12,
-                color: Colors.grey.shade700,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildTeamSelection(List<Team> teams) {
     return Card(
@@ -515,7 +430,7 @@ class _GameConfigScreenState extends State<GameConfigScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Condições de Término',
+              'Condições de Término de partida',
               style: GoogleFonts.roboto(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,

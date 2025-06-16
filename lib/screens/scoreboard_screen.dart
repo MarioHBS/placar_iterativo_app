@@ -244,25 +244,43 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
   }
 
   void _endMatch() {
+    print('DEBUG: _endMatch called');
+    print('DEBUG: currentGameConfig.endCondition = ${currentGameConfig.endCondition}');
+    print('DEBUG: currentMatch.id = ${currentMatch.id}');
+    print('DEBUG: currentMatch.isComplete = ${currentMatch.isComplete}');
+    
     _timer.cancel();
 
     // Determinar o vencedor e anunciar
     final updatedMatch = matchesNotifier.matches[currentMatch.id];
+    print('DEBUG: updatedMatch found = ${updatedMatch != null}');
+    
     if (updatedMatch != null) {
+      print('DEBUG: updatedMatch.isComplete = ${updatedMatch.isComplete}');
+      
       final winner = updatedMatch.teamAScore > updatedMatch.teamBScore
           ? widget.teamA
           : widget.teamB;
 
+      print('DEBUG: Winner determined = ${winner.name}');
+      
       // Anunciar o vencedor após um pequeno delay
       Future.delayed(const Duration(seconds: 2), () {
         _ttsService.announceWinner(winner.name);
       });
     }
 
+    print('DEBUG: Calling completeMatch');
     matchesNotifier.completeMatch(currentMatch.id).then((_) {
+      print('DEBUG: completeMatch completed successfully');
       if (widget.onMatchComplete != null) {
+        print('DEBUG: Calling onMatchComplete callback');
         widget.onMatchComplete!();
+      } else {
+        print('DEBUG: No onMatchComplete callback provided');
       }
+    }).catchError((error) {
+      print('DEBUG: Error in completeMatch: $error');
     });
   }
 

@@ -46,6 +46,7 @@
   - [x] Substituído Image.asset por Image.file para arquivos do sistema
   - [x] Adicionado tratamento de erro com fallback para emoji
 - [x] **Áudio de Pontuação** - Anunciar em áudio o ponto atual ao alterar pontuação
+- [x] **Ranking do Torneio** - Exibir ranking final destacando o campeão
 - [ ] **Símbolo de Posse de Bola** - Definir qual time inicia com a bola usando símbolo de vôlei 🏐
 - [ ] **Time Vencedor Inicia** - Time vencedor da partida anterior sempre começa com a bola
 - [ ] **Finalizar Jogo com Celebração** - Botão para anunciar vencedor do dia com áudio de comemoração e troféu 🏆
