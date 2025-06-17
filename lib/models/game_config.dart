@@ -20,6 +20,24 @@ enum EndCondition {
   both
 }
 
+@HiveType(typeId: 5)
+enum TournamentEndCondition {
+  @HiveField(0)
+  none,
+  @HiveField(1)
+  firstToWins, // Primeiro a X vitórias
+  @HiveField(2)
+  mostWinsInRounds, // Maior número de vitórias em X rodadas
+  @HiveField(3)
+  pointsSystem, // Sistema de pontos acumulados
+  @HiveField(4)
+  totalDuration, // Duração total do torneio
+  @HiveField(5)
+  specificDeadline, // Deadline específico
+  @HiveField(6)
+  maxMatches, // Número máximo de partidas
+}
+
 @HiveType(typeId: 4)
 class GameConfig {
   @HiveField(0)
@@ -48,6 +66,27 @@ class GameConfig {
   bool?
       _waitingModeEnabled; // whether waiting mode is enabled for this tournament
 
+  @HiveField(8)
+  TournamentEndCondition? tournamentEndCondition;
+
+  @HiveField(9)
+  int? firstToWinsCount; // X vitórias para finalizar torneio
+
+  @HiveField(10)
+  int? roundsCount; // X rodadas para maior número de vitórias
+
+  @HiveField(11)
+  int? targetPoints; // X pontos para sistema de pontos
+
+  @HiveField(12)
+  int? tournamentDurationMinutes; // duração total em minutos
+
+  @HiveField(13)
+  DateTime? specificDeadline; // deadline específico
+
+  @HiveField(14)
+  int? maxTournamentMatches; // número máximo de partidas do torneio
+
   GameConfig({
     required this.id,
     this.gameMode = GameMode.tournament,
@@ -57,6 +96,13 @@ class GameConfig {
     this.winsForWaitingMode = 3,
     this.totalMatches,
     bool waitingModeEnabled = true,
+    this.tournamentEndCondition,
+    this.firstToWinsCount,
+    this.roundsCount,
+    this.targetPoints,
+    this.tournamentDurationMinutes,
+    this.specificDeadline,
+    this.maxTournamentMatches,
   }) : _waitingModeEnabled = waitingModeEnabled;
 
   // Getter for waitingModeEnabled with default value
@@ -70,6 +116,13 @@ class GameConfig {
     int winsForWaitingMode = 3,
     int? totalMatches,
     bool waitingModeEnabled = true,
+    TournamentEndCondition? tournamentEndCondition,
+    int? firstToWinsCount,
+    int? roundsCount,
+    int? targetPoints,
+    int? tournamentDurationMinutes,
+    DateTime? specificDeadline,
+    int? maxTournamentMatches,
   }) {
     return GameConfig(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -80,6 +133,13 @@ class GameConfig {
       winsForWaitingMode: winsForWaitingMode,
       totalMatches: totalMatches,
       waitingModeEnabled: waitingModeEnabled,
+      tournamentEndCondition: tournamentEndCondition,
+      firstToWinsCount: firstToWinsCount,
+      roundsCount: roundsCount,
+      targetPoints: targetPoints,
+      tournamentDurationMinutes: tournamentDurationMinutes,
+      specificDeadline: specificDeadline,
+      maxTournamentMatches: maxTournamentMatches,
     );
   }
 

@@ -27,6 +27,16 @@ class _GameConfigScreenState extends State<GameConfigScreen> {
   final _maxMatchesController = TextEditingController();
   bool _waitingModeEnabled = true;
 
+  // Tournament end condition variables
+  TournamentEndCondition _selectedTournamentEndCondition =
+      TournamentEndCondition.none;
+  final _firstToWinsController = TextEditingController();
+  final _roundsCountController = TextEditingController();
+  final _targetPointsController = TextEditingController();
+  final _tournamentDurationController = TextEditingController();
+  DateTime? _selectedDeadline;
+  final _maxTournamentMatchesController = TextEditingController();
+
   Team? _teamA;
   Team? _teamB;
 
@@ -226,8 +236,6 @@ class _GameConfigScreenState extends State<GameConfigScreen> {
     );
   }
 
-
-
   Widget _buildTeamSelection(List<Team> teams) {
     return Card(
       elevation: 4,
@@ -393,28 +401,184 @@ class _GameConfigScreenState extends State<GameConfigScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildNumberField(
-                    label: 'Vitórias para Modo Espera',
-                    controller: _streakController,
-                    hint: '3',
-                    enabled: _waitingModeEnabled,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildNumberField(
-                    label: 'Número Total de Partidas (opcional)',
-                    controller: _maxMatchesController,
-                    hint: 'Ilimitado',
-                    isRequired: false,
-                  ),
-                ),
-              ],
+            if (_waitingModeEnabled) ...[
+              const SizedBox(height: 16),
+              _buildNumberField(
+                label: 'Vitórias para Modo Espera',
+                controller: _streakController,
+                hint: '3',
+              ),
+            ],
+            const SizedBox(height: 24),
+            // Tournament End Conditions Section
+            Text(
+              'Condições de Término do Torneio',
+              style: GoogleFonts.roboto(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
             ),
+            const SizedBox(height: 12),
+            _buildTournamentEndConditionRadio(
+              title: 'Sem limite',
+              value: TournamentEndCondition.none,
+              groupValue: _selectedTournamentEndCondition,
+              onChanged: (value) =>
+                  setState(() => _selectedTournamentEndCondition = value!),
+            ),
+            _buildTournamentEndConditionRadio(
+              title: 'Quantidade de vitórias',
+              value: TournamentEndCondition.firstToWins,
+              groupValue: _selectedTournamentEndCondition,
+              onChanged: (value) =>
+                  setState(() => _selectedTournamentEndCondition = value!),
+            ),
+            if (_selectedTournamentEndCondition ==
+                TournamentEndCondition.firstToWins)
+              Padding(
+                padding: const EdgeInsets.only(left: 32, top: 8, bottom: 8),
+                child: _buildNumberField(
+                  label: 'Número de vitórias',
+                  controller: _firstToWinsController,
+                  hint: '5',
+                ),
+              ),
+            _buildTournamentEndConditionRadio(
+              title: 'Quantidade de rodadas',
+              value: TournamentEndCondition.mostWinsInRounds,
+              groupValue: _selectedTournamentEndCondition,
+              onChanged: (value) =>
+                  setState(() => _selectedTournamentEndCondition = value!),
+            ),
+            if (_selectedTournamentEndCondition ==
+                TournamentEndCondition.mostWinsInRounds)
+              Padding(
+                padding: const EdgeInsets.only(left: 32, top: 8, bottom: 8),
+                child: _buildNumberField(
+                  label: 'Número de rodadas',
+                  controller: _roundsCountController,
+                  hint: '10',
+                ),
+              ),
+            _buildTournamentEndConditionRadio(
+              title: 'Pontuação acumulada',
+              value: TournamentEndCondition.pointsSystem,
+              groupValue: _selectedTournamentEndCondition,
+              onChanged: (value) =>
+                  setState(() => _selectedTournamentEndCondition = value!),
+            ),
+            if (_selectedTournamentEndCondition ==
+                TournamentEndCondition.pointsSystem)
+              Padding(
+                padding: const EdgeInsets.only(left: 32, top: 8, bottom: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildNumberField(
+                      label: 'Pontos para vencer',
+                      controller: _targetPointsController,
+                      hint: '30',
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Sistema: 3 pts vitória, 1 pt empate, 0 pts derrota',
+                      style: GoogleFonts.roboto(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            _buildTournamentEndConditionRadio(
+              title: 'Duração total do torneio',
+              value: TournamentEndCondition.totalDuration,
+              groupValue: _selectedTournamentEndCondition,
+              onChanged: (value) =>
+                  setState(() => _selectedTournamentEndCondition = value!),
+            ),
+            if (_selectedTournamentEndCondition ==
+                TournamentEndCondition.totalDuration)
+              Padding(
+                padding: const EdgeInsets.only(left: 32, top: 8, bottom: 8),
+                child: _buildNumberField(
+                  label: 'Duração (minutos)',
+                  controller: _tournamentDurationController,
+                  hint: '120',
+                ),
+              ),
+            _buildTournamentEndConditionRadio(
+              title: 'Horário limite',
+              value: TournamentEndCondition.specificDeadline,
+              groupValue: _selectedTournamentEndCondition,
+              onChanged: (value) =>
+                  setState(() => _selectedTournamentEndCondition = value!),
+            ),
+            if (_selectedTournamentEndCondition ==
+                TournamentEndCondition.specificDeadline)
+              Padding(
+                padding: const EdgeInsets.only(left: 32, top: 8, bottom: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Horário limite',
+                      style: GoogleFonts.roboto(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    InkWell(
+                      onTap: _selectDeadline,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.access_time, size: 20),
+                            const SizedBox(width: 8),
+                            Text(
+                              _selectedDeadline != null
+                                  ? 'Hoje às ${_selectedDeadline!.hour.toString().padLeft(2, '0')}:${_selectedDeadline!.minute.toString().padLeft(2, '0')}'
+                                  : 'Selecionar horário',
+                              style: GoogleFonts.roboto(
+                                color: _selectedDeadline != null
+                                    ? Colors.black
+                                    : Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            _buildTournamentEndConditionRadio(
+              title: 'Número máximo de partidas',
+              value: TournamentEndCondition.maxMatches,
+              groupValue: _selectedTournamentEndCondition,
+              onChanged: (value) =>
+                  setState(() => _selectedTournamentEndCondition = value!),
+            ),
+            if (_selectedTournamentEndCondition ==
+                TournamentEndCondition.maxMatches)
+              Padding(
+                padding: const EdgeInsets.only(left: 32, top: 8, bottom: 8),
+                child: _buildNumberField(
+                  label: 'Número máximo de partidas',
+                  controller: _maxTournamentMatchesController,
+                  hint: '50',
+                ),
+              ),
           ],
         ),
       ),
@@ -508,6 +672,22 @@ class _GameConfigScreenState extends State<GameConfigScreen> {
     );
   }
 
+  Widget _buildTournamentEndConditionRadio({
+    required String title,
+    required TournamentEndCondition value,
+    required TournamentEndCondition groupValue,
+    required Function(TournamentEndCondition?) onChanged,
+  }) {
+    return RadioListTile<TournamentEndCondition>(
+      title: Text(title),
+      value: value,
+      groupValue: groupValue,
+      onChanged: onChanged,
+      contentPadding: EdgeInsets.zero,
+      dense: true,
+    );
+  }
+
   Widget _buildEndConditionRadio({
     required String title,
     required EndCondition value,
@@ -560,6 +740,26 @@ class _GameConfigScreenState extends State<GameConfigScreen> {
         ),
       ],
     );
+  }
+
+  Future<void> _selectDeadline() async {
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (pickedTime != null) {
+      final DateTime today = DateTime.now();
+      setState(() {
+        _selectedDeadline = DateTime(
+          today.year,
+          today.month,
+          today.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
+      });
+    }
   }
 
   Widget _buildStartButton() {
