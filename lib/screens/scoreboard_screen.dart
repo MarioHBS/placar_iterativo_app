@@ -124,10 +124,14 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
   Future<void> _loadOrientationSettings() async {
     try {
       _settingsBox = await Hive.openBox('settings');
-      _isOrientationLocked = _settingsBox.get(_orientationLockKey, defaultValue: false);
-      final savedOrientation = _settingsBox.get(_lockedOrientationKey, defaultValue: 'portrait');
-      _lockedOrientation = savedOrientation == 'landscape' ? Orientation.landscape : Orientation.portrait;
-      
+      _isOrientationLocked =
+          _settingsBox.get(_orientationLockKey, defaultValue: false);
+      final savedOrientation =
+          _settingsBox.get(_lockedOrientationKey, defaultValue: 'portrait');
+      _lockedOrientation = savedOrientation == 'landscape'
+          ? Orientation.landscape
+          : Orientation.portrait;
+
       if (_isOrientationLocked && _lockedOrientation != null) {
         _applyOrientationLock(_lockedOrientation!);
       } else {
@@ -144,7 +148,9 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     try {
       await _settingsBox.put(_orientationLockKey, _isOrientationLocked);
       if (_lockedOrientation != null) {
-        final orientationString = _lockedOrientation == Orientation.landscape ? 'landscape' : 'portrait';
+        final orientationString = _lockedOrientation == Orientation.landscape
+            ? 'landscape'
+            : 'portrait';
         await _settingsBox.put(_lockedOrientationKey, orientationString);
       }
     } catch (e) {
@@ -282,25 +288,26 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
 
   void _endMatch() {
     print('DEBUG: _endMatch called');
-    print('DEBUG: currentGameConfig.endCondition = ${currentGameConfig.endCondition}');
+    print(
+        'DEBUG: currentGameConfig.endCondition = ${currentGameConfig.endCondition}');
     print('DEBUG: currentMatch.id = ${currentMatch.id}');
     print('DEBUG: currentMatch.isComplete = ${currentMatch.isComplete}');
-    
+
     _timer.cancel();
 
     // Determinar o vencedor e anunciar
     final updatedMatch = matchesNotifier.matches[currentMatch.id];
     print('DEBUG: updatedMatch found = ${updatedMatch != null}');
-    
+
     if (updatedMatch != null) {
       print('DEBUG: updatedMatch.isComplete = ${updatedMatch.isComplete}');
-      
+
       final winner = updatedMatch.teamAScore > updatedMatch.teamBScore
           ? widget.teamA
           : widget.teamB;
 
       print('DEBUG: Winner determined = ${winner.name}');
-      
+
       // Anunciar o vencedor após um pequeno delay
       Future.delayed(const Duration(seconds: 2), () {
         _ttsService.announceWinner(winner.name);

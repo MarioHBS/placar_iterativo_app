@@ -276,4 +276,38 @@ class Tournament {
     isComplete = false;
     completedAt = null;
   }
+
+  // Add a new team to the tournament during gameplay
+  void addTeamToTournament(Team team) {
+    // Check if team is already in the tournament
+    if (teamIds.contains(team.id)) {
+      return; // Team already exists
+    }
+
+    // Add team to tournament
+    teamIds.add(team.id);
+    
+    // Initialize tournament-specific stats for the new team
+    team.initializeTournamentStats(id);
+    
+    // Add team to the end of the queue
+    queueIds.add(team.id);
+  }
+
+  // Remove a team from the tournament (if needed)
+  void removeTeamFromTournament(String teamId) {
+    // Remove from all lists
+    teamIds.remove(teamId);
+    queueIds.remove(teamId);
+    
+    // Clear waiting status if this team was waiting
+    if (waitingTeamId == teamId) {
+      waitingTeamId = null;
+    }
+    
+    // Clear challenger status if this team was challenger
+    if (challengerId == teamId) {
+      challengerId = null;
+    }
+  }
 }

@@ -263,6 +263,13 @@ class _TournamentScreenState extends State<TournamentScreen> {
           ),
         ),
         actions: [
+          if (!_tournament.isComplete) ...[
+            IconButton(
+              icon: const Icon(Icons.group_add),
+              onPressed: _showAddTeamDialog,
+              tooltip: 'Adicionar Time',
+            ),
+          ],
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _resetTournament,
@@ -850,5 +857,118 @@ class _TournamentScreenState extends State<TournamentScreen> {
         ],
       ),
     );
+  }
+
+  void _showAddTeamDialog() {
+    final availableTeams = teamsNotifier
+        .getAllTeams()
+        .where((team) => !_tournament.teamIds.contains(team.id))
+        .toList();
+
+    if (availableTeams.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Todos os times já estão no torneio'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Adicionar Time ao Torneio'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: availableTeams.length,
+            itemBuilder: (context, index) {
+              final team = availableTeams[index];
+              return ListTile(
+                leading: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: team.color.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: team.color, width: 2),
+                  ),
+                  child: Center(
+                    child: team.imagePath != null
+                        ? ClipOval(
+                            child: Image.file(
+                              File(team.imagePath!),
+                              width: 30,
+                              height: 30,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Text(
+                                  team.emoji ?? '🏆',
+                                  style: const TextStyle(fontSize: 16),
+                                );
+                              },
+                            ),
+                          )
+                        : Text(
+                            team.emoji ?? '🏆',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                  ),
+                ),
+                title: Text(
+                  team.name,
+                  style: GoogleFonts.roboto(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                subtitle: Text(
+                  'Vitórias: ${team.wins} | Derrotas: ${team.losses}',
+                  style: GoogleFonts.roboto(
+                    fontSize: 12,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _addTeamToTournament(team);
+                },
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _addTeamToTournament(Team team) async {
+    final success = await tournamentNotifier.addTeamToTournament(
+      _tournament.id,
+      team,
+      teamsNotifier,
+    );
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${team.name} foi adicionado ao torneio!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      _loadNextMatch();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Erro ao adicionar time ao torneio'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }

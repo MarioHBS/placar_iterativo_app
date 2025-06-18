@@ -35,6 +35,10 @@
   - [x] Toque simples para incrementar pontuação
   - [x] Toque longo para decrementar pontuação
   - [x] Gestos verticais (deslizar para cima/baixo) para controlar pontuação
+- [x] **Add Teams During Tournament** - Adicionar novos times ao torneio já em andamento
+  - [x] Interface para adicionar times durante o torneio
+  - [x] Atualização automática das chaves e próximas partidas
+  - [x] Validação para evitar conflitos com partidas já realizadas
 
 ## 🔄 Em Desenvolvimento/Refinamento
 

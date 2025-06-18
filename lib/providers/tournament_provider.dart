@@ -195,7 +195,7 @@ class TournamentNotifier extends ChangeNotifier {
     String tournamentId,
     TeamsNotifier teamsNotifier,
   ) async {
-    final tournament = _tournaments[tournamentId];
+    final tournament = getTournament(tournamentId);
     if (tournament == null) return;
 
     // Get all teams as a map
@@ -213,6 +213,55 @@ class TournamentNotifier extends ChangeNotifier {
     for (final team in teamsMap.values) {
       await teamsNotifier.updateTeam(team);
     }
+  }
+
+  // Add a team to an existing tournament
+  Future<bool> addTeamToTournament(
+    String tournamentId,
+    Team team,
+    TeamsNotifier teamsNotifier,
+  ) async {
+    final tournament = getTournament(tournamentId);
+    if (tournament == null) return false;
+
+    // Check if tournament is complete
+    if (tournament.isComplete) {
+      return false;
+    }
+
+    // Add team to tournament
+    tournament.addTeamToTournament(team);
+
+    // Update the tournament
+    await updateTournament(tournament);
+
+    // Update the team in teams provider
+    await teamsNotifier.updateTeam(team);
+
+    return true;
+  }
+
+  // Remove a team from an existing tournament
+  Future<bool> removeTeamFromTournament(
+    String tournamentId,
+    String teamId,
+    TeamsNotifier teamsNotifier,
+  ) async {
+    final tournament = getTournament(tournamentId);
+    if (tournament == null) return false;
+
+    // Check if tournament is complete
+    if (tournament.isComplete) {
+      return false;
+    }
+
+    // Remove team from tournament
+    tournament.removeTeamFromTournament(teamId);
+
+    // Update the tournament
+    await updateTournament(tournament);
+
+    return true;
   }
 
   // Reload tournaments from Hive (useful after import operations)
