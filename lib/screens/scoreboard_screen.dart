@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive/hive.dart';
 import 'package:placar_iterativo_app/models/game_config.dart';
 import 'package:placar_iterativo_app/models/match.dart';
 import 'package:placar_iterativo_app/models/team.dart';
@@ -38,6 +39,8 @@ class ScoreboardScreen extends StatefulWidget {
 }
 
 class _ScoreboardScreenState extends State<ScoreboardScreen> {
+  static const String _orientationLockKey = 'orientation_lock';
+  static const String _lockedOrientationKey = 'locked_orientation';
   late CurrentGameNotifier currentGameNotifier;
   late MatchesNotifier matchesNotifier;
   late Timer _timer;
@@ -46,6 +49,8 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
   bool _isTimeUp = false;
   bool _isOrientationLocked = false;
   bool _showOrientationMenu = false;
+  Orientation? _lockedOrientation;
+  late Box _settingsBox;
   late Match currentMatch;
   late GameConfig currentGameConfig;
 
@@ -84,7 +89,7 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     matchesNotifier.addListener(_onMatchesChanged);
     _initializeTts();
     _startTimer();
-    _enableFullRotation();
+    _loadOrientationSettings();
   }
 
   Future<void> _initializeTts() async {
@@ -107,6 +112,7 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     _ttsService.dispose();
     currentGameNotifier.removeListener(_onGameStateChanged);
     matchesNotifier.removeListener(_onMatchesChanged);
+    _saveOrientationSettings();
     _restoreDefaultOrientation();
     super.dispose();
   }
@@ -115,6 +121,37 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
 
   void _onMatchesChanged() => setState(() {});
 
+  Future<void> _loadOrientationSettings() async {
+    try {
+      _settingsBox = await Hive.openBox('settings');
+      _isOrientationLocked = _settingsBox.get(_orientationLockKey, defaultValue: false);
+      final savedOrientation = _settingsBox.get(_lockedOrientationKey, defaultValue: 'portrait');
+      _lockedOrientation = savedOrientation == 'landscape' ? Orientation.landscape : Orientation.portrait;
+      
+      if (_isOrientationLocked && _lockedOrientation != null) {
+        _applyOrientationLock(_lockedOrientation!);
+      } else {
+        _enableFullRotation();
+      }
+    } catch (e) {
+      // Se houver erro, mantém orientação livre
+      _isOrientationLocked = false;
+      _enableFullRotation();
+    }
+  }
+
+  Future<void> _saveOrientationSettings() async {
+    try {
+      await _settingsBox.put(_orientationLockKey, _isOrientationLocked);
+      if (_lockedOrientation != null) {
+        final orientationString = _lockedOrientation == Orientation.landscape ? 'landscape' : 'portrait';
+        await _settingsBox.put(_lockedOrientationKey, orientationString);
+      }
+    } catch (e) {
+      // Ignora erro de salvamento
+    }
+  }
+
   void _enableFullRotation() {
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
@@ -122,6 +159,26 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
+
+    // Enable fullscreen mode
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.immersiveSticky,
+      overlays: [],
+    );
+  }
+
+  void _applyOrientationLock(Orientation orientation) {
+    if (orientation == Orientation.portrait) {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
+    } else {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
+    }
 
     // Enable fullscreen mode
     SystemChrome.setEnabledSystemUIMode(
@@ -152,18 +209,8 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
       if (_isOrientationLocked) {
         // Lock to current orientation
         final currentOrientation = MediaQuery.of(context).orientation;
-
-        if (currentOrientation == Orientation.portrait) {
-          SystemChrome.setPreferredOrientations([
-            DeviceOrientation.portraitUp,
-            DeviceOrientation.portraitDown,
-          ]);
-        } else {
-          SystemChrome.setPreferredOrientations([
-            DeviceOrientation.landscapeLeft,
-            DeviceOrientation.landscapeRight,
-          ]);
-        }
+        _lockedOrientation = currentOrientation;
+        _applyOrientationLock(currentOrientation);
       } else {
         // Unlock orientation
         _enableFullRotation();
@@ -174,18 +221,8 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
   void _forceOrientation(Orientation orientation) {
     setState(() {
       _isOrientationLocked = true;
-
-      if (orientation == Orientation.portrait) {
-        SystemChrome.setPreferredOrientations([
-          DeviceOrientation.portraitUp,
-          DeviceOrientation.portraitDown,
-        ]);
-      } else {
-        SystemChrome.setPreferredOrientations([
-          DeviceOrientation.landscapeLeft,
-          DeviceOrientation.landscapeRight,
-        ]);
-      }
+      _lockedOrientation = orientation;
+      _applyOrientationLock(orientation);
     });
   }
 
@@ -578,24 +615,28 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
   Widget _buildLandscapeLayout(Match match, double width, double height) {
     return Row(
       children: [
-        _buildTeamSection(
-          team: widget.teamA,
-          score: match.teamAScore,
-          isTeamA: true,
-          width: width / 2,
-          height: height,
+        Expanded(
+          child: _buildTeamSection(
+            team: widget.teamA,
+            score: match.teamAScore,
+            isTeamA: true,
+            width: (width - 2) / 2,
+            height: height,
+          ),
         ),
         Container(
           width: 2,
           height: height,
           color: _getDividerColor(),
         ),
-        _buildTeamSection(
-          team: widget.teamB,
-          score: match.teamBScore,
-          isTeamA: false,
-          width: width / 2,
-          height: height,
+        Expanded(
+          child: _buildTeamSection(
+            team: widget.teamB,
+            score: match.teamBScore,
+            isTeamA: false,
+            width: (width - 2) / 2,
+            height: height,
+          ),
         ),
       ],
     );
