@@ -7,8 +7,6 @@ import 'package:placar_iterativo_app/models/team.dart';
 import 'package:placar_iterativo_app/providers/teams_provider.dart';
 import 'package:placar_iterativo_app/services/tts_service.dart';
 import 'package:placar_iterativo_app/services/audio_service.dart';
-import 'package:placar_iterativo_app/widgets/animated_widgets.dart';
-import 'package:placar_iterativo_app/utils/responsive_utils.dart';
 
 class TournamentRankingScreen extends StatefulWidget {
   final Tournament tournament;
