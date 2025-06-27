@@ -67,8 +67,8 @@
 - [ ] **Sound Effects** - Efeitos sonoros para eventos do jogo
 
 ### Data Management
-- [ ] **Data Export** - Exportar dados de torneios/partidas
-- [ ] **Data Import** - Importar configurações e dados
+- [X] **Data Export** - Exportar dados de torneios/partidas
+- [X] **Data Import** - Importar configurações e dados
 - [ ] **Backup/Restore** - Sistema de backup automático
 
 ## 📋 Funcionalidades Pendentes

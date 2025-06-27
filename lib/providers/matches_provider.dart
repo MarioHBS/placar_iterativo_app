@@ -159,4 +159,20 @@ class MatchesNotifier extends ChangeNotifier {
   bool hasActiveMatch() {
     return getActiveMatch() != null;
   }
+
+  // Reload matches from Hive (useful after import operations)
+  Future<void> reloadMatches() async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+      
+      _matches = _loadMatches();
+      _isLoading = false;
+      _error = null;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+    }
+    notifyListeners();
+  }
 }

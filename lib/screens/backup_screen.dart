@@ -6,6 +6,7 @@ import 'package:placar_iterativo_app/models/team.dart';
 import 'package:placar_iterativo_app/services/backup_service.dart';
 import 'package:placar_iterativo_app/providers/teams_provider.dart';
 import 'package:placar_iterativo_app/providers/tournament_provider.dart';
+import 'package:placar_iterativo_app/providers/matches_provider.dart';
 import 'package:placar_iterativo_app/utils/responsive_utils.dart';
 
 class BackupScreen extends StatefulWidget {
@@ -19,15 +20,18 @@ class _BackupScreenState extends State<BackupScreen> {
   final BackupService _backupService = BackupService();
   late TeamsNotifier _teamsNotifier;
   late TournamentNotifier _tournamentNotifier;
+  late MatchesNotifier _matchesNotifier;
   bool _isLoading = false;
   String? _statusMessage;
   bool _importTournaments = true;
+  bool _importMatches = true;
 
   @override
   void initState() {
     super.initState();
     _teamsNotifier = Modular.get<TeamsNotifier>();
     _tournamentNotifier = Modular.get<TournamentNotifier>();
+    _matchesNotifier = Modular.get<MatchesNotifier>();
   }
 
   @override
@@ -365,6 +369,19 @@ class _BackupScreenState extends State<BackupScreen> {
               },
               controlAffinity: ListTileControlAffinity.leading,
             ),
+            CheckboxListTile(
+              title: const Text('Partidas'),
+              subtitle: const Text('Opcional'),
+              value: _importMatches,
+              onChanged: (value) {
+                setState(() {
+                  _importMatches = value!;
+                });
+                Navigator.of(context).pop();
+                _showImportCompleteDialog();
+              },
+              controlAffinity: ListTileControlAffinity.leading,
+            ),
           ],
         ),
         actions: [
@@ -401,6 +418,7 @@ class _BackupScreenState extends State<BackupScreen> {
         final importResult = await _backupService.importCompleteFromFile(
           file,
           importTournaments: _importTournaments,
+          importMatches: _importMatches,
         );
 
         // Reload providers to update the UI
@@ -408,6 +426,9 @@ class _BackupScreenState extends State<BackupScreen> {
           await _teamsNotifier.reloadTeams();
           if (_importTournaments) {
             await _tournamentNotifier.reloadTournaments();
+          }
+          if (_importMatches) {
+            await _matchesNotifier.reloadMatches();
           }
         }
 
