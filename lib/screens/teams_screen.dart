@@ -7,6 +7,7 @@ import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 import 'package:placar_iterativo_app/models/team.dart';
 import 'package:placar_iterativo_app/providers/teams_provider.dart';
+import 'package:placar_iterativo_app/utils/responsive_utils.dart';
 
 class TeamsScreen extends StatefulWidget {
   const TeamsScreen({super.key});
@@ -102,29 +103,39 @@ class _TeamsScreenState extends State<TeamsScreen> {
     final teamsList = teams.values.toList();
 
     if (teamsList.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.sports_soccer, size: 64, color: Colors.grey),
-            const SizedBox(height: 16),
-            Text(
-              'Nenhum time cadastrado',
-              style: GoogleFonts.roboto(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+      return ResponsiveContainer(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.sports_soccer,
+                size: ResponsiveUtils.getIconSize(context) * 2.5,
                 color: Colors.grey,
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Toque no botão + para adicionar um time',
-              style: GoogleFonts.roboto(
-                fontSize: 14,
-                color: Colors.grey,
+              SizedBox(height: ResponsiveUtils.getSpacing(context)),
+              ResponsiveText(
+                'Nenhum time cadastrado',
+                style: GoogleFonts.roboto(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                ),
+                mobileFontSize: 18,
+                tabletFontSize: 20,
+                desktopFontSize: 22,
               ),
-            ),
-          ],
+              SizedBox(height: ResponsiveUtils.getSpacing(context) * 0.5),
+              ResponsiveText(
+                'Toque no botão + para adicionar um time',
+                style: GoogleFonts.roboto(
+                  color: Colors.grey,
+                ),
+                mobileFontSize: 14,
+                tabletFontSize: 16,
+                desktopFontSize: 16,
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -133,13 +144,46 @@ class _TeamsScreenState extends State<TeamsScreen> {
   }
 
   Widget _buildTeamsList(List<Team> teamsList) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: teamsList.length,
-      itemBuilder: (context, index) {
-        final team = teamsList[index];
-        return _buildTeamCard(context, team);
-      },
+    return ResponsiveContainer(
+      child: ResponsiveUtils.responsive(
+        context: context,
+        mobile: ListView.builder(
+          padding: ResponsiveUtils.getPadding(context),
+          itemCount: teamsList.length,
+          itemBuilder: (context, index) {
+            final team = teamsList[index];
+            return _buildTeamCard(context, team);
+          },
+        ),
+        tablet: GridView.builder(
+          padding: ResponsiveUtils.getPadding(context),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: ResponsiveUtils.getGridSpacing(context),
+            mainAxisSpacing: ResponsiveUtils.getGridSpacing(context),
+            childAspectRatio: 3.5,
+          ),
+          itemCount: teamsList.length,
+          itemBuilder: (context, index) {
+            final team = teamsList[index];
+            return _buildTeamCard(context, team);
+          },
+        ),
+        desktop: GridView.builder(
+          padding: ResponsiveUtils.getPadding(context),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            crossAxisSpacing: ResponsiveUtils.getGridSpacing(context),
+            mainAxisSpacing: ResponsiveUtils.getGridSpacing(context),
+            childAspectRatio: 3.5,
+          ),
+          itemCount: teamsList.length,
+          itemBuilder: (context, index) {
+            final team = teamsList[index];
+            return _buildTeamCard(context, team);
+          },
+        ),
+      ),
     );
   }
 

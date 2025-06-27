@@ -11,6 +11,7 @@ import 'package:placar_iterativo_app/models/team.dart';
 import 'package:placar_iterativo_app/providers/current_game_provider.dart';
 import 'package:placar_iterativo_app/providers/matches_provider.dart';
 import 'package:placar_iterativo_app/services/tts_service.dart';
+import 'package:placar_iterativo_app/utils/responsive_utils.dart';
 
 class ScoreboardScreen extends StatefulWidget {
   final Match? match;
@@ -688,9 +689,25 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
   }) {
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
-    final fontSize = isLandscape ? 100.0 : 120.0;
-    final teamNameSize = isLandscape ? 28.0 : 32.0;
-    final emojiSize = isLandscape ? 40.0 : 48.0;
+    
+    // Aplicar responsividade baseada no tamanho da tela
+    double fontSize;
+    double teamNameSize;
+    double emojiSize;
+    
+    if (ResponsiveUtils.isMobile(context)) {
+      fontSize = isLandscape ? 80.0 : 100.0;
+      teamNameSize = isLandscape ? 24.0 : 28.0;
+      emojiSize = isLandscape ? 32.0 : 40.0;
+    } else if (ResponsiveUtils.isTablet(context)) {
+      fontSize = isLandscape ? 100.0 : 120.0;
+      teamNameSize = isLandscape ? 28.0 : 32.0;
+      emojiSize = isLandscape ? 40.0 : 48.0;
+    } else {
+      fontSize = isLandscape ? 120.0 : 140.0;
+      teamNameSize = isLandscape ? 32.0 : 36.0;
+      emojiSize = isLandscape ? 48.0 : 56.0;
+    }
 
     return GestureDetector(
       onTap: () => _incrementScore(isTeamA),

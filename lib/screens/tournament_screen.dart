@@ -11,6 +11,7 @@ import 'package:placar_iterativo_app/providers/tournament_provider.dart';
 import 'package:placar_iterativo_app/screens/scoreboard_screen.dart';
 import 'package:placar_iterativo_app/screens/tournament_ranking_screen.dart';
 import 'package:placar_iterativo_app/screens/match_summary_screen.dart';
+import 'package:placar_iterativo_app/utils/responsive_utils.dart';
 
 class TournamentScreen extends StatefulWidget {
   final Tournament tournament;
@@ -231,9 +232,10 @@ class _TournamentScreenState extends State<TournamentScreen> {
       _tournament = latestTournament;
     }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: _buildTournamentContent(teams),
+    return ResponsiveContainer(
+      child: SingleChildScrollView(
+        child: _buildTournamentContent(teams),
+      ),
     );
   }
 
@@ -242,11 +244,11 @@ class _TournamentScreenState extends State<TournamentScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildTournamentInfo(),
-        const SizedBox(height: 24),
+        SizedBox(height: ResponsiveUtils.getSpacing(context)),
         _buildCurrentMatch(teams),
-        const SizedBox(height: 24),
+        SizedBox(height: ResponsiveUtils.getSpacing(context)),
         _buildTeamQueue(teams),
-        const SizedBox(height: 24),
+        SizedBox(height: ResponsiveUtils.getSpacing(context)),
         _buildMatchHistory(teams),
       ],
     );

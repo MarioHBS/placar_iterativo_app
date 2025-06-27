@@ -53,7 +53,7 @@
 - [x] **Ranking do Torneio** - Exibir ranking final destacando o campeão
 - [ ] **Símbolo de Posse de Bola** - Definir qual time inicia com a bola usando símbolo de vôlei 🏐
 - [ ] **Time Vencedor Inicia** - Time vencedor da partida anterior sempre começa com a bola
-- [ ] **Finalizar Jogo com Celebração** - Botão para anunciar vencedor do dia com áudio de comemoração e troféu 🏆
+- [x] **Finalizar Jogo com Celebração** - Botão para anunciar vencedor da partida com áudio de comemoração e troféu 🏆
 
 ### UI/UX Improvements
 - [x] **Responsive Design** - Sistema de responsividade implementado com ResponsiveUtils
@@ -61,7 +61,7 @@
   - [x] Utilitários para padding, spacing, font sizes e dimensões responsivas
   - [x] Widgets ResponsiveContainer e ResponsiveText para facilitar implementação
   - [x] Implementado em Home Screen e Game Config Screen
-  - [ ] Aplicar responsividade nas demais telas (Scoreboard, Teams, Tournament, etc.)
+  - [x] Aplicar responsividade nas demais telas (Scoreboard, Teams, Tournament, etc.)
 - [x] **Dark/Light Theme** - Implementar temas claro e escuro
 - [ ] **Animations** - Adicionar animações de transição
 - [ ] **Sound Effects** - Efeitos sonoros para eventos do jogo

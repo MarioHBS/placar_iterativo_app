@@ -7,6 +7,7 @@ import 'package:placar_iterativo_app/models/team.dart';
 import 'package:placar_iterativo_app/models/tournament.dart';
 import 'package:placar_iterativo_app/providers/teams_provider.dart';
 import 'package:placar_iterativo_app/services/audio_service.dart';
+import 'package:placar_iterativo_app/utils/responsive_utils.dart';
 
 class MatchSummaryScreen extends StatefulWidget {
   final Match match;
