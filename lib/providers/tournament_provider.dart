@@ -215,6 +215,18 @@ class TournamentNotifier extends ChangeNotifier {
     }
   }
 
+  // Manually end a tournament
+  Future<void> endTournamentManually(String tournamentId) async {
+    final tournament = getTournament(tournamentId);
+    if (tournament == null || tournament.isComplete) return;
+
+    // Complete the tournament manually
+    tournament.completeTournament();
+    
+    // Update the tournament
+    await updateTournament(tournament);
+  }
+
   // Add a team to an existing tournament
   Future<bool> addTeamToTournament(
     String tournamentId,

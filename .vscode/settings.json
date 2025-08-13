@@ -1,3 +1,15 @@
 {
-    "cmake.sourceDirectory": "P:/ProjectsFlutter/PUBLICACAO/placar_iterativo_app/windows"
+    "cmake.sourceDirectory": "P:/ProjectsFlutter/PUBLICACAO/placar_iterativo_app/windows",
+    "explorer.fileNesting.enabled": true,
+    "explorer.fileNesting.patterns": {
+        "requirements.txt": "requirements-*.txt",
+        ".env.example": ".env",
+        "README.md": "*.md"
+    },
+    "workbench.colorCustomizations": {
+        "activityBar.background": "#40367b",
+        // "sideBar.background": "#2D5A27",
+        "titleBar.activeBackground": "#40367b",
+        "titleBar.activeForeground": "#F7FCF6"
+    }
 }

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:placar_iterativo_app/models/game_config.dart';
 import 'package:placar_iterativo_app/models/match.dart';
 import 'package:placar_iterativo_app/models/team.dart';
 import 'package:placar_iterativo_app/models/tournament.dart';
@@ -266,6 +267,13 @@ class _TournamentScreenState extends State<TournamentScreen> {
         ),
         actions: [
           if (!_tournament.isComplete) ...[
+            // Show end tournament button only for unlimited tournaments
+            if (_tournament.config.tournamentEndCondition == TournamentEndCondition.none)
+              IconButton(
+                icon: const Icon(Icons.stop_circle),
+                onPressed: _showEndTournamentDialog,
+                tooltip: 'Encerrar Torneio',
+              ),
             IconButton(
               icon: const Icon(Icons.group_add),
               onPressed: _showAddTeamDialog,
@@ -971,6 +979,91 @@ class _TournamentScreenState extends State<TournamentScreen> {
           backgroundColor: Colors.red,
         ),
       );
+    }
+  }
+
+  void _showEndTournamentDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Encerrar Torneio',
+            style: GoogleFonts.roboto(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            'Tem certeza que deseja encerrar o torneio "${_tournament.name}"?\n\nEsta ação não pode ser desfeita e o ranking atual será considerado final.',
+            style: GoogleFonts.roboto(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Cancelar',
+                style: GoogleFonts.roboto(),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _endTournamentManually();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: Text(
+                'Encerrar',
+                style: GoogleFonts.roboto(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _endTournamentManually() async {
+    try {
+      await tournamentNotifier.endTournamentManually(_tournament.id);
+      
+      // Update local tournament state
+      final updatedTournament = tournamentNotifier.getTournament(_tournament.id);
+      if (updatedTournament != null) {
+        setState(() {
+          _tournament = updatedTournament;
+        });
+      }
+      
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Torneio encerrado com sucesso!',
+              style: GoogleFonts.roboto(),
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Erro ao encerrar torneio: $e',
+              style: GoogleFonts.roboto(),
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 }
