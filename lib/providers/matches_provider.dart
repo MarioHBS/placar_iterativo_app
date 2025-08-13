@@ -9,6 +9,7 @@ class MatchesNotifier extends ChangeNotifier {
   Map<String, Match> _matches = {};
   bool _isLoading = true;
   String? _error;
+  bool _isInitialized = false;
 
   MatchesNotifier() {
     _init();
@@ -19,11 +20,20 @@ class MatchesNotifier extends ChangeNotifier {
   String? get error => _error;
 
   Future<void> _init() async {
+    if (!_isInitialized) {
+      await initialize();
+    }
+  }
+
+  Future<void> initialize() async {
+    if (_isInitialized) return;
+    
     try {
       await _initHive();
       _matches = _loadMatches();
       _isLoading = false;
       _error = null;
+      _isInitialized = true;
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
@@ -47,19 +57,46 @@ class MatchesNotifier extends ChangeNotifier {
   }
 
   // Create a new match
-  Future<Match> createMatch({
-    required Team teamA,
-    required Team teamB,
-  }) async {
-    final match = Match.create(
-      teamA: teamA,
-      teamB: teamB,
-    );
+  Future<Match> createMatch([
+    dynamic teamAOrTeamA,
+    dynamic teamBOrTeamB,
+    dynamic configOrNull,
+  ]) async {
+    Match match;
+    
+    if (teamAOrTeamA is Team && teamBOrTeamB is Team) {
+      // Original method with Team objects
+      match = Match.create(
+        teamA: teamAOrTeamA,
+        teamB: teamBOrTeamB,
+      );
+    } else if (teamAOrTeamA is String && teamBOrTeamB is String) {
+      // New method with string IDs and config
+      match = Match(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        teamAId: teamAOrTeamA,
+        teamBId: teamBOrTeamB,
+        teamAScore: 0,
+        teamBScore: 0,
+        startTime: DateTime.now(),
+        isComplete: false,
+      );
+    } else {
+      throw ArgumentError('Invalid arguments for createMatch');
+    }
 
     await _matchesBox.put(match.id, match);
     _matches = {..._matches, match.id: match};
     notifyListeners();
     return match;
+  }
+
+  // Create a new match with named parameters
+  Future<Match> createMatchWithTeams({
+    required Team teamA,
+    required Team teamB,
+  }) async {
+    return createMatch(teamA, teamB);
   }
 
   // Update an existing match
@@ -125,7 +162,7 @@ class MatchesNotifier extends ChangeNotifier {
   }
 
   // Complete a match
-  Future<void> completeMatch(String matchId) async {
+  Future<void> completeMatch(String matchId, [String? winner]) async {
     final match = _matches[matchId];
     if (match != null && !match.isComplete) {
       match.completeMatch();

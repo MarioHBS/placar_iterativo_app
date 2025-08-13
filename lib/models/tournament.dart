@@ -56,11 +56,11 @@ class Tournament {
     DateTime? createdAt,
     this.completedAt,
     bool isComplete = false,
-  }) : _matchIds = matchIds ?? <String>[],
-       _isComplete = isComplete,
-       _challengerId = challengerId,
-       _currentMatchId = currentMatchId,
-       _createdAt = createdAt;
+  })  : _matchIds = matchIds ?? <String>[],
+        _isComplete = isComplete,
+        _challengerId = challengerId,
+        _currentMatchId = currentMatchId,
+        _createdAt = createdAt;
 
   // Getter for isComplete with default value
   bool get isComplete => _isComplete ?? false;
@@ -100,7 +100,8 @@ class Tournament {
   List<String> get matchIds {
     if (_matchIds == null) return <String>[];
     if (_matchIds is List) return (_matchIds as List).cast<String>();
-    if (_matchIds is String) return [_matchIds]; // Convert single string to list
+    if (_matchIds is String)
+      return [_matchIds]; // Convert single string to list
     return <String>[]; // Default empty list for unexpected types
   }
 
@@ -125,7 +126,7 @@ class Tournament {
     // If shuffleTeams is false, maintain the original selection order
 
     final tournamentId = DateTime.now().millisecondsSinceEpoch.toString();
-    
+
     // Initialize tournament-specific consecutive wins counter for all teams
     for (final team in teams) {
       team.initializeTournamentStats(tournamentId);
@@ -175,8 +176,8 @@ class Tournament {
       // Clear waiting status
       final waitingTeam = teamsMap[waitingTeamId]!;
       waitingTeam.isWaiting = false;
-      waitingTeam
-          .resetConsecutiveWins(id); // Reset consecutive wins when returning (tournament-specific)
+      waitingTeam.resetConsecutiveWins(
+          id); // Reset consecutive wins when returning (tournament-specific)
       waitingTeamId = null;
       challengerId = null; // Clear challenger as the match is complete
     }
@@ -205,7 +206,8 @@ class Tournament {
       // Check if winner should enter waiting mode (only if they weren't just returning and waiting mode is enabled)
       if (!waitingTeamReturned &&
           config.waitingModeEnabled &&
-          winner.getTournamentConsecutiveWins(id) >= config.winsForWaitingMode) {
+          winner.getTournamentConsecutiveWins(id) >=
+              config.winsForWaitingMode) {
         // Winner enters waiting mode, remove from queue
         queueIds.remove(winner.id);
         waitingTeamId = winner.id;
@@ -245,7 +247,7 @@ class Tournament {
     currentMatchId = null;
 
     // Check if tournament is complete
-    if (config.isTournamentComplete(matchIds.length)) {
+    if (config.isTournamentComplete(matchesPlayed: matchIds.length)) {
       completeTournament();
     }
   }
@@ -286,10 +288,10 @@ class Tournament {
 
     // Add team to tournament
     teamIds.add(team.id);
-    
+
     // Initialize tournament-specific stats for the new team
     team.initializeTournamentStats(id);
-    
+
     // Add team to the end of the queue
     queueIds.add(team.id);
   }
@@ -298,6 +300,39 @@ class Tournament {
   void removeTeamFromTournament(String teamId) {
     // Remove from all lists
     teamIds.remove(teamId);
+    queueIds.remove(teamId);
+
+    // Clear waiting status if this team was waiting
+    if (waitingTeamId == teamId) {
+      waitingTeamId = null;
+    }
+
+    // Clear challenger status if this team was challenger
+    if (challengerId == teamId) {
+      challengerId = null;
+    }
+  }
+
+  // Add a team by ID to the tournament
+  void addTeam(String teamId) {
+    // Check if team is already in the tournament
+    if (teamIds.contains(teamId)) {
+      return; // Team already exists
+    }
+
+    // Add team to tournament
+    teamIds.add(teamId);
+
+    // Add team to the end of the queue
+    queueIds.add(teamId);
+  }
+
+  // Remove a team by ID from the tournament
+  void removeTeam(String teamId) {
+    // Remove from team list
+    teamIds.remove(teamId);
+    
+    // Remove from queue
     queueIds.remove(teamId);
     
     // Clear waiting status if this team was waiting
@@ -309,5 +344,70 @@ class Tournament {
     if (challengerId == teamId) {
       challengerId = null;
     }
+  }
+
+  // Add a match to the tournament
+  void addMatch(String matchId) {
+    if (!matchIds.contains(matchId)) {
+      matchIds.add(matchId);
+    }
+  }
+
+  // Get the number of matches in the tournament
+  int getMatchCount() {
+    return matchIds.length;
+  }
+
+  // Check if there is a current match
+  bool hasCurrentMatch() {
+    return currentMatchId != null;
+  }
+
+  // Set the current match
+  void setCurrentMatch(String matchId) {
+    currentMatchId = matchId;
+  }
+
+  // Get the position of a team in the queue
+  int getQueuePosition(String teamId) {
+    return queueIds.indexOf(teamId);
+  }
+
+  // Clear the current match
+  void clearCurrentMatch() {
+    currentMatchId = null;
+  }
+
+  // Check if a team is in the queue
+  bool isInQueue(String teamId) {
+    return queueIds.contains(teamId);
+  }
+
+  // Get the next team in queue
+  String? getNextInQueue() {
+    return queueIds.isNotEmpty ? queueIds.first : null;
+  }
+
+  // Add a team to the queue
+  void addToQueue(String teamId) {
+    // Only add if team exists in tournament and is not already in queue
+    if (teamIds.contains(teamId) && !queueIds.contains(teamId)) {
+      queueIds.add(teamId);
+    }
+  }
+
+  // Remove a team from the queue
+  void removeFromQueue(String teamId) {
+    queueIds.remove(teamId);
+  }
+
+  // Check if tournament has a specific team
+  bool hasTeam(String teamId) {
+    return teamIds.contains(teamId);
+  }
+
+  // Get the number of teams in the tournament
+  int getTeamCount() {
+    return teamIds.length;
   }
 }

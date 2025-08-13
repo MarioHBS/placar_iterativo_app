@@ -1,296 +1,302 @@
-# 🧪 Testes do Placar Iterativo App
+# 🧪 Estrutura de Testes - Placar Interativo
 
-Este diretório contém todos os testes automatizados para o aplicativo Placar Iterativo. Os testes são organizados por categoria e cobrem diferentes aspectos da aplicação.
+Este documento descreve a estrutura completa de testes do projeto Placar Interativo, incluindo organização, padrões de nomenclatura e instruções de execução.
 
-## 📁 Estrutura dos Testes
+## 📁 Estrutura de Pastas
 
 ```
 test/
-├── models/                     # Testes dos modelos de dados
-│   ├── team_test.dart         # Testes do modelo Team
-│   ├── match_test.dart        # Testes do modelo Match
-│   └── game_config_test.dart  # Testes do modelo GameConfig
-├── providers/                  # Testes dos providers (gerenciamento de estado)
+├── models/                    # Testes unitários para models
+│   ├── team_test.dart
+│   ├── match_test.dart
+│   ├── tournament_test.dart
+│   └── game_config_test.dart
+├── providers/                 # Testes unitários para providers
 │   ├── teams_provider_test.dart
-│   └── current_game_provider_test.dart
-├── services/                   # Testes dos serviços
-│   └── hive_service_test.dart # Testes do serviço de persistência
-├── widgets/                    # Testes dos widgets customizados
-│   └── animated_widgets_test.dart
-├── integration/                # Testes de integração
+│   ├── matches_provider_test.dart
+│   ├── tournament_provider_test.dart
+│   └── game_provider_test.dart
+├── services/                  # Testes unitários para services
+│   ├── hive_service_test.dart
+│   ├── audio_service_test.dart
+│   ├── tts_service_test.dart
+│   └── backup_service_test.dart
+├── widgets/                   # Testes de widgets
+│   ├── score_board_test.dart
+│   └── team_card_test.dart
+├── integration/               # Testes de integração
 │   └── app_integration_test.dart
-├── test_utils.dart            # Utilitários para testes
-├── all_tests.dart             # Executa todos os testes
-└── README.md                  # Este arquivo
+├── performance/               # Testes de performance
+│   └── performance_test.dart
+├── utils/                     # Utilitários para testes
+│   └── test_utils.dart
+├── test_config.dart          # Configurações globais de teste
+├── run_all_tests.dart        # Script para executar todos os testes
+└── README.md                 # Este arquivo
 ```
+
+## 🏷️ Padrões de Nomenclatura
+
+### Arquivos de Teste
+- **Formato**: `{nome_da_classe}_test.dart`
+- **Exemplos**: 
+  - `team_test.dart` para a classe `Team`
+  - `teams_provider_test.dart` para a classe `TeamsProvider`
+  - `score_board_test.dart` para o widget `ScoreBoard`
+
+### Grupos de Teste
+- **Formato**: Nome da classe ou funcionalidade sendo testada
+- **Exemplos**:
+  ```dart
+  group('Team', () { ... });
+  group('TeamsProvider', () { ... });
+  group('ScoreBoard Widget', () { ... });
+  ```
+
+### Casos de Teste
+- **Formato**: Descrição clara do comportamento esperado
+- **Padrões**:
+  - `should {ação} when {condição}`
+  - `should return {resultado} when {entrada}`
+  - `should throw {exceção} when {condição inválida}`
+
+**Exemplos**:
+```dart
+test('should create team with valid data', () { ... });
+test('should return empty list when no teams exist', () { ... });
+test('should throw exception when name is empty', () { ... });
+```
+
+## 🎯 Tipos de Teste
+
+### 1. Testes Unitários
+**Localização**: `test/models/`, `test/providers/`, `test/services/`
+
+**Objetivo**: Testar unidades isoladas de código
+
+**Características**:
+- Rápidos de executar
+- Testam uma única funcionalidade
+- Usam mocks para dependências
+- Alta cobertura de código
+
+### 2. Testes de Widget
+**Localização**: `test/widgets/`
+
+**Objetivo**: Testar componentes de UI
+
+**Características**:
+- Testam renderização e interações
+- Verificam acessibilidade
+- Testam responsividade
+- Usam `WidgetTester`
+
+### 3. Testes de Integração
+**Localização**: `test/integration/`
+
+**Objetivo**: Testar fluxos completos da aplicação
+
+**Características**:
+- Testam múltiplos componentes juntos
+- Simulam interações do usuário
+- Verificam fluxos end-to-end
+- Mais lentos que testes unitários
+
+### 4. Testes de Performance
+**Localização**: `test/performance/`
+
+**Objetivo**: Verificar performance e limites do sistema
+
+**Características**:
+- Testam com grandes volumes de dados
+- Medem tempo de execução
+- Verificam uso de memória
+- Testam operações concorrentes
 
 ## 🚀 Como Executar os Testes
 
 ### Executar Todos os Testes
 ```bash
-# Executa todos os testes da aplicação
-flutter test
+# Usando o script personalizado
+dart test/run_all_tests.dart
 
-# Ou executar o arquivo principal de testes
-flutter test test/all_tests.dart
+# Com opções
+dart test/run_all_tests.dart --verbose --coverage
+
+# Comando Flutter padrão
+flutter test
 ```
 
-### Executar Testes Específicos
-
-#### Testes de Modelos
+### Executar Tipos Específicos
 ```bash
-# Todos os testes de modelos
-flutter test test/models/
+# Apenas testes unitários
+flutter test test/models test/providers test/services
 
-# Teste específico do modelo Team
+# Apenas testes de widget
+flutter test test/widgets
+
+# Apenas testes de integração
+flutter test test/integration
+
+# Apenas testes de performance
+flutter test test/performance
+```
+
+### Executar Arquivo Específico
+```bash
+# Teste específico
 flutter test test/models/team_test.dart
 
-# Teste específico do modelo Match
-flutter test test/models/match_test.dart
-
-# Teste específico do modelo GameConfig
-flutter test test/models/game_config_test.dart
-```
-
-#### Testes de Providers
-```bash
-# Todos os testes de providers
-flutter test test/providers/
-
-# Teste específico do TeamsProvider
-flutter test test/providers/teams_provider_test.dart
-
-# Teste específico do CurrentGameProvider
-flutter test test/providers/current_game_provider_test.dart
-```
-
-#### Testes de Serviços
-```bash
-# Todos os testes de serviços
-flutter test test/services/
-
-# Teste específico do HiveService
-flutter test test/services/hive_service_test.dart
-```
-
-#### Testes de Widgets
-```bash
-# Todos os testes de widgets
-flutter test test/widgets/
-
-# Teste específico dos widgets animados
-flutter test test/widgets/animated_widgets_test.dart
-```
-
-#### Testes de Integração
-```bash
-# Todos os testes de integração
-flutter test test/integration/
-
-# Teste específico de integração da app
-flutter test test/integration/app_integration_test.dart
-```
-
-### Executar com Cobertura de Código
-```bash
-# Instalar a ferramenta de cobertura (se não estiver instalada)
-flutter pub global activate coverage
-
-# Executar testes com cobertura
-flutter test --coverage
-
-# Gerar relatório HTML de cobertura
-genhtml coverage/lcov.info -o coverage/html
-
-# Abrir relatório no navegador (Windows)
-start coverage/html/index.html
-```
-
-### Executar em Modo Watch (Desenvolvimento)
-
-O Flutter não possui um comando `--watch` nativo. Use uma das alternativas abaixo:
-
-#### Opção 1: Script PowerShell (Windows - Recomendado)
-```powershell
-# Execute o script incluído no projeto
-.\test\watch_tests.ps1
-```
-
-#### Opção 2: Usar nodemon (Cross-platform)
-```bash
-# Instalar nodemon globalmente
-npm install -g nodemon
-
-# Executar com nodemon
-nodemon --exec "flutter test" --ext dart --watch lib/ --watch test/
-```
-
-#### Opção 3: VS Code com extensão Flutter
-- Instale a extensão Flutter no VS Code
-- Use `Ctrl+Shift+P` > "Flutter: Run Tests"
-- Os testes serão executados automaticamente quando arquivos forem salvos
-
-#### Opção 4: Usar entr (Linux/macOS)
-```bash
-# Instalar entr primeiro
-# No macOS: brew install entr
-# No Linux: apt-get install entr
-
-# Executar
-find lib test -name "*.dart" | entr -r flutter test
-```
-
-## 📊 Tipos de Testes
-
-### 1. **Testes Unitários** 🔬
-- **Modelos**: Testam a lógica de negócio dos modelos de dados
-- **Providers**: Testam o gerenciamento de estado e lógica de negócio
-- **Serviços**: Testam a persistência de dados e serviços externos
-
-### 2. **Testes de Widget** 🎨
-- Testam componentes de UI individuais
-- Verificam renderização e interações
-- Testam animações e transições
-
-### 3. **Testes de Integração** 🔗
-- Testam fluxos completos da aplicação
-- Verificam integração entre componentes
-- Testam navegação e estado global
-
-## 🛠️ Utilitários de Teste
-
-O arquivo `test_utils.dart` contém funções auxiliares para:
-
-- **Configuração do Hive**: Inicialização e limpeza do banco de dados
-- **Widgets de Teste**: Wrappers para facilitar testes de UI
-- **Simulações**: Gestos, orientação, ciclo de vida da app
-- **Mocks**: Criação de dados de teste
-- **Matchers Customizados**: Verificações específicas da aplicação
-
-### Exemplo de Uso dos Utilitários
-```dart
-import '../test_utils.dart';
-
-void main() {
-  group('Meu Teste', () {
-    setUp(() async {
-      await TestUtils.initializeHiveForTesting();
-    });
-
-    tearDown(() async {
-      await TestUtils.clearAllHiveBoxes();
-    });
-
-    testWidgets('deve renderizar widget', (tester) async {
-      await tester.pumpWidget(
-        TestUtils.createTestWidget(MeuWidget()),
-      );
-      
-      TestUtils.verifyWidgetExists(find.text('Texto Esperado'));
-    });
-  });
-}
-```
-
-## 📈 Cobertura de Testes
-
-Os testes cobrem:
-
-- ✅ **Modelos de Dados**: Team, Match, GameConfig, Tournament
-- ✅ **Providers**: TeamsProvider, CurrentGameProvider
-- ✅ **Serviços**: HiveService (persistência)
-- ✅ **Widgets**: Componentes animados
-- ✅ **Integração**: Fluxos principais da aplicação
-
-## 🐛 Debugging de Testes
-
-### Executar Testes em Modo Debug
-```bash
-# Executar com informações detalhadas
-flutter test --verbose
-
-# Executar teste específico com debug
+# Com modo verboso
 flutter test test/models/team_test.dart --verbose
 ```
 
-### Logs e Debugging
-```dart
-// Adicionar logs nos testes
-test('meu teste', () {
-  debugPrint('Iniciando teste...');
-  // código do teste
-  debugPrint('Teste finalizado.');
-});
+### Opções do Script Personalizado
+```bash
+# Modo verboso (mostra saída detalhada)
+dart test/run_all_tests.dart --verbose
+
+# Gerar relatório de cobertura
+dart test/run_all_tests.dart --coverage
+
+# Pular testes de performance
+dart test/run_all_tests.dart --skip-performance
+
+# Pular testes de integração
+dart test/run_all_tests.dart --skip-integration
+
+# Apenas mostrar falhas
+dart test/run_all_tests.dart --failures-only
 ```
 
-## 📝 Convenções de Teste
+## 📊 Cobertura de Código
 
-### Nomenclatura
-- Arquivos de teste terminam com `_test.dart`
-- Grupos de teste usam `group('Nome do Grupo', () {})`
-- Testes individuais usam `test('deve fazer algo', () {})`
-- Testes de widget usam `testWidgets('deve renderizar', (tester) async {})`
+### Gerar Relatório
+```bash
+# Executar testes com cobertura
+flutter test --coverage
 
-### Estrutura AAA (Arrange, Act, Assert)
-```dart
-test('deve calcular corretamente', () {
-  // Arrange - Preparar dados
-  final team = Team(id: '1', name: 'Test', color: Colors.blue);
-  
-  // Act - Executar ação
-  final result = team.calculateWinRate();
-  
-  // Assert - Verificar resultado
-  expect(result, equals(0.0));
-});
+# Gerar relatório HTML (requer lcov)
+genhtml coverage/lcov.info -o coverage/html
+
+# Ou usar o script personalizado
+dart test/run_all_tests.dart --coverage
 ```
 
-### Limpeza de Recursos
+### Visualizar Relatório
+Abra o arquivo `coverage/html/index.html` no navegador.
+
+## 🛠️ Configurações
+
+### Arquivo de Configuração
+O arquivo `test_config.dart` contém configurações globais:
+
 ```dart
-group('Meus Testes', () {
-  setUp(() {
-    // Configuração antes de cada teste
-  });
+class TestConfig {
+  // Timeouts para diferentes tipos de teste
+  static const Duration unitTestTimeout = Duration(seconds: 30);
+  static const Duration widgetTestTimeout = Duration(minutes: 2);
+  static const Duration integrationTestTimeout = Duration(minutes: 5);
+  static const Duration performanceTestTimeout = Duration(minutes: 10);
   
-  tearDown(() {
-    // Limpeza após cada teste
-  });
+  // Parâmetros de performance
+  static const int performanceTestIterations = 1000;
+  static const int largeDatasetSize = 10000;
   
-  setUpAll(() {
-    // Configuração uma vez antes de todos os testes
-  });
-  
-  tearDownAll(() {
-    // Limpeza uma vez após todos os testes
-  });
-});
+  // E muito mais...
+}
 ```
 
-## 🔧 Configuração de CI/CD
+### Utilitários de Teste
+O arquivo `test_utils.dart` fornece funções auxiliares:
 
-Para integração contínua, adicione ao seu workflow:
+```dart
+class TestUtils {
+  // Inicialização do Hive para testes
+  static Future<void> initializeHive() async { ... }
+  
+  // Limpeza após testes
+  static Future<void> cleanupHive() async { ... }
+  
+  // Criação de dados de teste
+  static Team createTestTeam({String? name, Color? color}) { ... }
+  
+  // E muito mais...
+}
+```
 
-```yaml
-# .github/workflows/test.yml
-name: Tests
-on: [push, pull_request]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: subosito/flutter-action@v2
-      - run: flutter pub get
-      - run: flutter test --coverage
-      - uses: codecov/codecov-action@v2
+## 📋 Checklist de Qualidade
+
+Antes de fazer commit, verifique:
+
+- [ ] Todos os testes passam
+- [ ] Cobertura de código > 80%
+- [ ] Testes seguem padrões de nomenclatura
+- [ ] Casos edge estão cobertos
+- [ ] Testes são independentes
+- [ ] Mocks são usados adequadamente
+- [ ] Performance está dentro dos limites
+
+## 🔧 Ferramentas Recomendadas
+
+### Extensões VS Code
+- **Flutter Test Runner**: Execução visual de testes
+- **Coverage Gutters**: Visualização de cobertura inline
+- **Dart Code Metrics**: Análise de qualidade de código
+
+### Comandos Úteis
+```bash
+# Executar testes em modo watch
+flutter test --watch
+
+# Executar com filtro de nome
+flutter test --name "should create team"
+
+# Executar com filtro de arquivo
+flutter test --plain-name "team_test"
+
+# Debug de teste específico
+flutter test test/models/team_test.dart --debug
+```
+
+## 🐛 Solução de Problemas
+
+### Problemas Comuns
+
+1. **Testes falhando por dependências**
+   - Verifique se todas as dependências estão mockadas
+   - Use `TestUtils.initializeHive()` para testes que usam Hive
+
+2. **Timeouts em testes de performance**
+   - Ajuste os timeouts em `test_config.dart`
+   - Use `--skip-performance` se necessário
+
+3. **Problemas de cobertura**
+   - Instale `lcov`: `sudo apt-get install lcov` (Linux)
+   - No Windows, use WSL ou Docker
+
+4. **Testes de widget falhando**
+   - Verifique se `testWidgets` está sendo usado
+   - Certifique-se de que `pumpAndSettle()` é chamado após interações
+
+### Logs e Debug
+```dart
+// Habilitar logs em testes
+setUpAll(() {
+  Logger.root.level = Level.ALL;
+  Logger.root.onRecord.listen(print);
+});
 ```
 
 ## 📚 Recursos Adicionais
 
-- [Documentação Oficial de Testes Flutter](https://docs.flutter.dev/testing)
-- [Cookbook de Testes](https://docs.flutter.dev/cookbook/testing)
-- [Melhores Práticas de Teste](https://docs.flutter.dev/testing/best-practices)
+- [Flutter Testing Guide](https://docs.flutter.dev/testing)
+- [Mockito Documentation](https://pub.dev/packages/mockito)
+- [Integration Testing](https://docs.flutter.dev/testing/integration-tests)
+- [Performance Testing](https://docs.flutter.dev/testing/performance)
 
 ---
 
-**Nota**: Certifique-se de que todos os testes passem antes de fazer commit das suas alterações. Use `flutter test` para verificar.
+**Última atualização**: $(date)
+**Versão**: 1.0.0
+**Mantido por**: Equipe de Desenvolvimento

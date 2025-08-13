@@ -15,6 +15,41 @@ class BackupService {
   factory BackupService() => _instance;
   BackupService._internal();
 
+  // Create a backup
+  static Future<String> createBackup() async {
+    final instance = BackupService();
+    final backup = await instance.exportComplete();
+    return backup['jsonContent'] as String;
+  }
+
+  // Restore from backup
+  static Future<void> restoreBackup(String backupData) async {
+    final instance = BackupService();
+    await instance.importFromJson(backupData);
+  }
+
+  // Import from JSON string
+  Future<ImportResult> importFromJson(String jsonContent) async {
+    try {
+      final data = jsonDecode(jsonContent) as Map<String, dynamic>;
+      final type = data['type'] as String?;
+      
+      if (type == 'teams_only') {
+        return await importTeams(jsonContent);
+      } else {
+        return await importComplete(jsonContent);
+      }
+    } catch (e) {
+      return ImportResult(
+        success: false,
+        teamsImported: 0,
+        tournamentsImported: 0,
+        matchesImported: 0,
+        message: 'Erro ao importar dados: $e',
+      );
+    }
+  }
+
   // Exportar apenas times
   Future<Map<String, dynamic>> exportTeamsOnly() async {
     try {

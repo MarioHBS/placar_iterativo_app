@@ -10,32 +10,49 @@ class HiveService {
     if (!isTest) {
       await Hive.initFlutter();
     }
-
-    // Register adapters
-    _registerAdapters();
-
-    // Register type adapters for custom types
-    _registerTypeAdapters();
+    registerAdapters();
   }
 
-  static void _registerAdapters() {
+  static void registerAdapters() {
     Hive.registerAdapter(TeamAdapter());
     Hive.registerAdapter(GameConfigAdapter());
-    Hive.registerAdapter(GameModeAdapter());
-    Hive.registerAdapter(EndConditionAdapter());
     Hive.registerAdapter(MatchAdapter());
     Hive.registerAdapter(TournamentAdapter());
+    Hive.registerAdapter(ColorAdapter());
+    Hive.registerAdapter(DateTimeAdapter());
+    Hive.registerAdapter(GameModeAdapter());
+    Hive.registerAdapter(EndConditionAdapter());
   }
 
-  static void _registerTypeAdapters() {
-    // Register adapter for Color
-    if (!Hive.isAdapterRegistered(100)) {
-      Hive.registerAdapter(ColorAdapter());
-    }
+  // Save a team to Hive
+  static Future<void> saveTeam(Team team) async {
+    final box = await Hive.openBox<Team>('teams');
+    await box.put(team.id, team);
+  }
 
-    // Register adapter for DateTime
-    if (!Hive.isAdapterRegistered(101)) {
-      Hive.registerAdapter(DateTimeAdapter());
+  // Save a match to Hive
+  static Future<void> saveMatch(Match match) async {
+    final box = await Hive.openBox<Match>('matches');
+    await box.put(match.id, match);
+  }
+
+  // Clear all Hive boxes
+  static Future<void> clearAllBoxes() async {
+    final boxNames = ['teams', 'matches', 'tournaments', 'game_config'];
+    
+    for (final boxName in boxNames) {
+      try {
+        if (Hive.isBoxOpen(boxName)) {
+          final box = Hive.box(boxName);
+          await box.clear();
+        } else {
+          final box = await Hive.openBox(boxName);
+          await box.clear();
+          await box.close();
+        }
+      } catch (e) {
+        // Ignore errors for boxes that don't exist
+      }
     }
   }
 }

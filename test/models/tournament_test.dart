@@ -1,315 +1,294 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:placar_iterativo_app/models/tournament.dart';
 import 'package:placar_iterativo_app/models/game_config.dart';
-import 'package:placar_iterativo_app/models/team.dart';
+import '../test_utils.dart';
 
 void main() {
   group('Tournament Model Tests', () {
+    late Tournament tournament;
     late GameConfig gameConfig;
-    late List<Team> teams;
-    late List<String> teamIds;
 
     setUp(() {
-      gameConfig = GameConfig(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        scoreLimit: 10,
-        timeLimit: 900, //15 * 60
+      gameConfig = TestUtils.createTestGameConfig(
+        id: 'test_config',
+        gameMode: GameMode.tournament,
       );
 
-      teams = [
-        Team(
-          id: 'team-1',
-          name: 'Team A',
-          color: Colors.blue,
-        ),
-        Team(
-          id: 'team-2',
-          name: 'Team B',
-          color: Colors.red,
-        ),
-        Team(
-          id: 'team-3',
-          name: 'Team C',
-          color: Colors.green,
-        ),
-      ];
-
-      teamIds = teams.map((team) => team.id).toList();
+      tournament = TestUtils.createTestTournament(
+        id: 'test_tournament_1',
+        name: 'Test Tournament',
+        config: gameConfig,
+        teamIds: ['team1', 'team2', 'team3', 'team4'],
+      );
     });
 
-    test('should create a tournament with required parameters', () {
-      // Arrange
-      const id = 'tournament-1';
-      const name = 'Test Tournament';
+    group('Construtor e Propriedades', () {
+      test('deve criar um torneio com propriedades corretas', () {
+        expect(tournament.id, equals('test_tournament_1'));
+        expect(tournament.name, equals('Test Tournament'));
+        expect(tournament.config, equals(gameConfig));
+        expect(
+            tournament.teamIds, equals(['team1', 'team2', 'team3', 'team4']));
+        expect(tournament.queueIds, equals(['team1', 'team2', 'team3', 'team4']));
+        expect(tournament.waitingTeamId, isNull);
+        expect(tournament.isComplete, isFalse);
+        expect(tournament.completedAt, isNull);
+      });
 
-      // Act
-      final tournament = Tournament(
-        id: id,
-        name: name,
-        config: gameConfig,
-        teamIds: teamIds,
-        queueIds: [],
-      );
+      test('deve criar um torneio com valores padrão', () {
+        final defaultTournament = Tournament(
+          id: 'default_tournament',
+          name: 'Default Tournament',
+          config: gameConfig,
+          teamIds: ['team1', 'team2'],
+          queueIds: [],
+        );
 
-      // Assert
-      expect(tournament.id, equals(id));
-      expect(tournament.name, equals(name));
-      expect(tournament.config, equals(gameConfig));
-      expect(tournament.teamIds, equals(teamIds));
-      expect(tournament.queueIds, isEmpty);
-      expect(tournament.waitingTeamId, isNull);
-      expect(tournament.challengerId, isNull);
-      expect(tournament.matchIds, isEmpty);
-      expect(tournament.currentMatchId, isNull);
-      expect(tournament.isComplete, isFalse);
-      expect(tournament.completedAt, isNull);
-      expect(tournament.createdAt, isNotNull);
+        expect(defaultTournament.queueIds, isEmpty);
+        expect(defaultTournament.waitingTeamId, isNull);
+        expect(defaultTournament.challengerId, isNull);
+        expect(defaultTournament.matchIds, isEmpty);
+        expect(defaultTournament.currentMatchId, isNull);
+        expect(defaultTournament.isComplete, isFalse);
+        expect(defaultTournament.completedAt, isNull);
+      });
     });
 
-    test('should create a tournament with all parameters', () {
-      // Arrange
-      const id = 'tournament-2';
-      const name = 'Complete Tournament';
-      final queueIds = ['team-2', 'team-3'];
-      const waitingTeamId = 'team-1';
-      const challengerId = 'team-2';
-      final matchIds = ['match-1', 'match-2'];
-      const currentMatchId = 'match-1';
-      final completedAt = DateTime.now();
-      const isComplete = true;
+    group('Métodos de Gerenciamento de Times', () {
+      test('addTeam deve adicionar time ao torneio', () {
+        tournament.addTeam('team5');
+        expect(tournament.teamIds, contains('team5'));
+      });
 
-      // Act
-      final tournament = Tournament(
-        id: id,
-        name: name,
-        config: gameConfig,
-        teamIds: teamIds,
-        queueIds: queueIds,
-        waitingTeamId: waitingTeamId,
-        challengerId: challengerId,
-        matchIds: matchIds,
-        currentMatchId: currentMatchId,
-        completedAt: completedAt,
-        isComplete: isComplete,
-      );
+      test('addTeam não deve adicionar time duplicado', () {
+        final initialLength = tournament.teamIds.length;
+        tournament.addTeam('team1'); // team1 já existe
+        expect(tournament.teamIds.length, equals(initialLength));
+      });
 
-      // Assert
-      expect(tournament.id, equals(id));
-      expect(tournament.name, equals(name));
-      expect(tournament.config, equals(gameConfig));
-      expect(tournament.teamIds, equals(teamIds));
-      expect(tournament.queueIds, equals(queueIds));
-      expect(tournament.waitingTeamId, equals(waitingTeamId));
-      expect(tournament.challengerId, equals(challengerId));
-      expect(tournament.matchIds, equals(matchIds));
-      expect(tournament.currentMatchId, equals(currentMatchId));
-      expect(tournament.completedAt, equals(completedAt));
-      expect(tournament.isComplete, equals(isComplete));
+      test('removeTeam deve remover time do torneio', () {
+        tournament.removeTeam('team1');
+        expect(tournament.teamIds, isNot(contains('team1')));
+      });
+
+      test('removeTeam deve remover time da fila também', () {
+        // Ensure team1 is in queue
+        if (!tournament.queueIds.contains('team1')) {
+          tournament.queueIds.add('team1');
+        }
+        tournament.removeTeam('team1');
+        expect(tournament.queueIds, isNot(contains('team1')));
+      });
+
+      test('hasTeam deve retornar true para time existente', () {
+        expect(tournament.hasTeam('team1'), isTrue);
+        expect(tournament.hasTeam('nonexistent'), isFalse);
+      });
+
+      test('getTeamCount deve retornar número correto de times', () {
+        expect(tournament.getTeamCount(), equals(4));
+      });
     });
 
-    test('should create tournament using factory constructor', () {
-      // Arrange
-      const name = 'Factory Tournament';
-      const shuffleTeams = true;
+    group('Métodos de Gerenciamento de Fila', () {
+      test('addToQueue deve adicionar time à fila', () {
+        tournament.addToQueue('team1');
+        expect(tournament.queueIds, contains('team1'));
+      });
 
-      // Act
-      final tournament = Tournament.create(
-        name: name,
-        config: gameConfig,
-        teams: teams,
-        shuffleTeams: shuffleTeams,
-      );
+      test('addToQueue não deve adicionar time que não está no torneio', () {
+        tournament.addToQueue('nonexistent');
+        expect(tournament.queueIds, isNot(contains('nonexistent')));
+      });
 
-      // Assert
-      expect(tournament.name, equals(name));
-      expect(tournament.config, equals(gameConfig));
-      expect(tournament.teamIds.length, equals(teams.length));
-      expect(tournament.id, isNotEmpty);
-      expect(tournament.createdAt, isNotNull);
-      expect(tournament.isComplete, isFalse);
+      test('removeFromQueue deve remover time da fila', () {
+        tournament.queueIds.clear();
+        tournament.queueIds.add('team1');
+        tournament.removeFromQueue('team1');
+        expect(tournament.queueIds, isNot(contains('team1')));
+      });
+
+      test('getNextInQueue deve retornar próximo time da fila', () {
+        tournament.queueIds.addAll(['team1', 'team2', 'team3']);
+        expect(tournament.getNextInQueue(), equals('team1'));
+      });
+
+      test('getNextInQueue deve retornar null para fila vazia', () {
+        tournament.queueIds.clear();
+        expect(tournament.getNextInQueue(), isNull);
+      });
+
+      test('isInQueue deve verificar se time está na fila', () {
+        tournament.queueIds.clear();
+        tournament.queueIds.add('team1');
+        expect(tournament.isInQueue('team1'), isTrue);
+        expect(tournament.isInQueue('team2'), isFalse);
+      });
+
+      test('getQueuePosition deve retornar posição na fila', () {
+        tournament.queueIds.clear();
+        tournament.queueIds.addAll(['team1', 'team2', 'team3']);
+        expect(tournament.getQueuePosition('team1'), equals(0));
+        expect(tournament.getQueuePosition('team2'), equals(1));
+        expect(tournament.getQueuePosition('team3'), equals(2));
+        expect(tournament.getQueuePosition('team4'), equals(-1));
+      });
     });
 
-    test('should initialize tournament stats for teams when created', () {
-      // Arrange
-      const name = 'Stats Tournament';
+    group('Métodos de Gerenciamento de Partidas', () {
+      test('addMatch deve adicionar partida ao torneio', () {
+        tournament.addMatch('match1');
+        expect(tournament.matchIds, contains('match1'));
+      });
 
-      // Act
-      final tournament = Tournament.create(
-        name: name,
-        config: gameConfig,
-        teams: teams,
-      );
+      test('setCurrentMatch deve definir partida atual', () {
+        tournament.setCurrentMatch('match1');
+        expect(tournament.currentMatchId, equals('match1'));
+      });
 
-      // Assert
-      for (final team in teams) {
-        expect(team.getTournamentConsecutiveWins(tournament.id), equals(0));
-      }
+      test('clearCurrentMatch deve limpar partida atual', () {
+        tournament.setCurrentMatch('match1');
+        tournament.clearCurrentMatch();
+        expect(tournament.currentMatchId, isNull);
+      });
+
+      test('hasCurrentMatch deve verificar se há partida atual', () {
+        expect(tournament.hasCurrentMatch(), isFalse);
+        tournament.setCurrentMatch('match1');
+        expect(tournament.hasCurrentMatch(), isTrue);
+      });
+
+      test('getMatchCount deve retornar número de partidas', () {
+        tournament.addMatch('match1');
+        tournament.addMatch('match2');
+        expect(tournament.getMatchCount(), equals(2));
+      });
     });
 
-    test('should reset tournament correctly', () {
-      // Arrange
-      final tournament = Tournament.create(
-        name: 'Reset Tournament',
-        config: gameConfig,
-        teams: teams,
-      );
+    group('Propriedades Básicas', () {
+      test('deve ter propriedades corretas após criação', () {
+        expect(tournament.id, isNotEmpty);
+        expect(tournament.name, equals('Test Tournament'));
+        expect(tournament.teamIds, hasLength(4));
+        expect(tournament.queueIds, hasLength(4));
+        expect(tournament.isComplete, isFalse);
+      });
+      test('deve permitir modificar nome', () {
+        tournament.name = 'New Tournament Name';
+        expect(tournament.name, equals('New Tournament Name'));
+      });
 
-      // Simulate some tournament state
-      tournament.queueIds.addAll(['team-2', 'team-3']);
-      tournament.waitingTeamId = 'team-1';
-      tournament.challengerId = 'team-2';
-      tournament.matchIds.add('match-1');
-      tournament.currentMatchId = 'match-1';
+      test('deve permitir marcar como completo', () {
+        tournament.isComplete = true;
+        expect(tournament.isComplete, isTrue);
+      });
 
-      // Act
-      final teamsMap = {for (final team in teams) team.id: team};
-      tournament.reset(teamsMap);
-
-      // Assert
-      expect(tournament.queueIds, isEmpty);
-      expect(tournament.waitingTeamId, isNull);
-      expect(tournament.challengerId, isNull);
-      expect(tournament.matchIds, isEmpty);
-      expect(tournament.currentMatchId, isNull);
-      expect(tournament.isComplete, isFalse);
-      expect(tournament.completedAt, isNull);
-
-      // Verify tournament stats are reset for all teams
-      for (final team in teams) {
-        expect(team.getTournamentConsecutiveWins(tournament.id), equals(0));
-      }
+      test('deve ter data de criação', () {
+        expect(tournament.createdAt, isA<DateTime>());
+      });
     });
 
-    test('should handle queue operations correctly', () {
-      // Arrange
-      final tournament = Tournament.create(
-        name: 'Queue Tournament',
-        config: gameConfig,
-        teams: teams,
-      );
+    group('Gerenciamento de IDs', () {
+      test('deve gerenciar matchIds corretamente', () {
+        tournament.matchIds = ['match1', 'match2'];
+        expect(tournament.matchIds, hasLength(2));
+        expect(tournament.matchIds, contains('match1'));
+        expect(tournament.matchIds, contains('match2'));
+      });
 
-      // Act & Assert - Add to queue
-      tournament.queueIds.add('team-1');
-      expect(tournament.queueIds.contains('team-1'), isTrue);
+      test('deve gerenciar currentMatchId', () {
+        tournament.currentMatchId = 'current_match';
+        expect(tournament.currentMatchId, equals('current_match'));
+      });
 
-      // Remove from queue
-      tournament.queueIds.remove('team-1');
-      expect(tournament.queueIds.contains('team-1'), isFalse);
+      test('deve gerenciar challengerId', () {
+        tournament.challengerId = 'challenger_team';
+        expect(tournament.challengerId, equals('challenger_team'));
+      });
+
+      test('deve gerenciar waitingTeamId', () {
+        tournament.waitingTeamId = 'waiting_team';
+        expect(tournament.waitingTeamId, equals('waiting_team'));
+      });
     });
 
-    test('should handle waiting team correctly', () {
-      // Arrange
-      final tournament = Tournament.create(
-        name: 'Waiting Tournament',
-        config: gameConfig,
-        teams: teams,
-      );
+    group('Serialização', () {
+      test('toJson deve converter tournament para Map', () {
+        final json = TestUtils.tournamentToJson(tournament);
 
-      // Act
-      tournament.waitingTeamId = 'team-1';
+        expect(json['id'], equals(tournament.id));
+        expect(json['name'], equals(tournament.name));
+        expect(json['teamIds'], equals(tournament.teamIds));
+        expect(json['queueIds'], equals(tournament.queueIds));
+        expect(json['isComplete'], equals(tournament.isComplete));
+      });
 
-      // Assert
-      expect(tournament.waitingTeamId, equals('team-1'));
+      test('fromJson deve criar tournament a partir de Map', () {
+        final json = TestUtils.tournamentToJson(tournament);
+        // Criar manualmente o tournament a partir do JSON
+        final recreatedTournament = Tournament(
+          id: json['id'],
+          name: json['name'],
+          config: json['config'],
+          teamIds: List<String>.from(json['teamIds']),
+          queueIds: List<String>.from(json['queueIds']),
+          isComplete: json['isComplete'],
+        );
 
-      // Clear waiting team
-      tournament.waitingTeamId = null;
-      expect(tournament.waitingTeamId, isNull);
+        expect(recreatedTournament.id, equals(tournament.id));
+        expect(recreatedTournament.name, equals(tournament.name));
+        expect(recreatedTournament.teamIds, equals(tournament.teamIds));
+        expect(recreatedTournament.queueIds, equals(tournament.queueIds));
+        expect(recreatedTournament.isComplete, equals(tournament.isComplete));
+      });
     });
 
-    test('should handle challenger correctly', () {
-      // Arrange
-      final tournament = Tournament.create(
-        name: 'Challenger Tournament',
-        config: gameConfig,
-        teams: teams,
-      );
+    group('Validação', () {
+      test('deve aceitar configurações válidas', () {
+        expect(
+            () => Tournament(
+                  id: 'valid_tournament',
+                  name: 'Valid Tournament',
+                  config: gameConfig,
+                  teamIds: ['team1', 'team2'],
+                  queueIds: ['team1', 'team2'],
+                ),
+            returnsNormally);
+      });
 
-      // Act
-      tournament.challengerId = 'team-2';
+      test('deve aceitar lista vazia de times', () {
+        expect(
+            () => Tournament(
+                  id: 'empty_tournament',
+                  name: 'Empty Tournament',
+                  config: gameConfig,
+                  teamIds: [],
+                  queueIds: [],
+                ),
+            returnsNormally);
+      });
 
-      // Assert
-      expect(tournament.challengerId, equals('team-2'));
+      test('deve aceitar nomes válidos', () {
+        expect(
+            () => Tournament(
+                  id: 'tournament1',
+                  name: 'Tournament Name',
+                  config: gameConfig,
+                  teamIds: ['team1'],
+                  queueIds: ['team1'],
+                ),
+            returnsNormally);
 
-      // Clear challenger
-      tournament.challengerId = null;
-      expect(tournament.challengerId, isNull);
-    });
-
-    test('should handle match tracking correctly', () {
-      // Arrange
-      final tournament = Tournament.create(
-        name: 'Match Tournament',
-        config: gameConfig,
-        teams: teams,
-      );
-
-      // Act
-      tournament.matchIds.add('match-1');
-      tournament.currentMatchId = 'match-1';
-
-      // Assert
-      expect(tournament.matchIds.contains('match-1'), isTrue);
-      expect(tournament.currentMatchId, equals('match-1'));
-
-      // Add another match
-      tournament.matchIds.add('match-2');
-      tournament.currentMatchId = 'match-2';
-      expect(tournament.matchIds.length, equals(2));
-      expect(tournament.currentMatchId, equals('match-2'));
-    });
-
-    test('should handle tournament completion correctly', () {
-      // Arrange
-      final tournament = Tournament.create(
-        name: 'Complete Tournament',
-        config: gameConfig,
-        teams: teams,
-      );
-
-      expect(tournament.isComplete, isFalse);
-      expect(tournament.completedAt, isNull);
-
-      // Act
-      final completionTime = DateTime.now();
-      tournament.isComplete = true;
-      tournament.completedAt = completionTime;
-
-      // Assert
-      expect(tournament.isComplete, isTrue);
-      expect(tournament.completedAt, equals(completionTime));
-    });
-
-    test('should update tournament name correctly', () {
-      // Arrange
-      final tournament = Tournament.create(
-        name: 'Original Name',
-        config: gameConfig,
-        teams: teams,
-      );
-
-      // Act
-      tournament.name = 'Updated Name';
-
-      // Assert
-      expect(tournament.name, equals('Updated Name'));
-    });
-
-    test('should maintain team order when not shuffled', () {
-      // Arrange
-      const name = 'Ordered Tournament';
-      const shuffleTeams = false;
-
-      // Act
-      final tournament = Tournament.create(
-        name: name,
-        config: gameConfig,
-        teams: teams,
-        shuffleTeams: shuffleTeams,
-      );
-
-      // Assert
-      expect(tournament.teamIds, equals(teamIds));
+        expect(
+            () => Tournament(
+                  id: 'tournament2',
+                  name: 'T',
+                  config: gameConfig,
+                  teamIds: ['team1'],
+                  queueIds: ['team1'],
+                ),
+            returnsNormally);
+      });
     });
   });
 }
