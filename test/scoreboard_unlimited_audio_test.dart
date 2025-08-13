@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_modular/flutter_modular.dart';
-
 import 'package:placar_iterativo_app/models/game_config.dart';
-import 'package:placar_iterativo_app/models/match.dart';
 import 'package:placar_iterativo_app/models/team.dart';
-import 'package:placar_iterativo_app/providers/current_game_provider.dart';
-import 'package:placar_iterativo_app/providers/matches_provider.dart';
 import 'package:placar_iterativo_app/screens/scoreboard_screen.dart';
 import 'package:placar_iterativo_app/app_module.dart';
+import 'package:placar_iterativo_app/services/hive_service.dart';
 
 void main() {
   group('Scoreboard Unlimited Mode Tests', () {
     late Team teamA;
     late Team teamB;
 
-    setUpAll(() {
+    setUpAll(() async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      // Initialize Hive for testing
+      await HiveService.init(isTest: true);
       // Initialize Modular
-      Modular.bindModule(AppModule());
+      Modular.init(AppModule());
     });
 
     setUp(() {
@@ -105,7 +105,7 @@ void main() {
 
       // Look for team names
       expect(find.text(teamA.name), findsWidgets);
-        expect(find.text(teamB.name), findsWidgets);
+      expect(find.text(teamB.name), findsWidgets);
     });
 
     group('GameConfig shouldEndByScore Tests', () {
